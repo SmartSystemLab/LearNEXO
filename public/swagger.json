@@ -6,7 +6,45 @@
 		"parameters": {},
 		"requestBodies": {},
 		"responses": {},
-		"schemas": {},
+		"schemas": {
+			"EUserRole": {
+				"enum": [
+					"parent",
+					"student",
+					"teacher",
+					"admin",
+					"super_admin"
+				],
+				"type": "string"
+			},
+			"SignUpDto": {
+				"properties": {
+					"role": {
+						"$ref": "#/components/schemas/EUserRole"
+					},
+					"password": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"lastName": {
+						"type": "string"
+					},
+					"firstName": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"role",
+					"password",
+					"email",
+					"lastName",
+					"firstName"
+				],
+				"type": "object"
+			}
+		},
 		"securitySchemes": {
 			"BearerAuth": {
 				"type": "http",
@@ -27,9 +65,9 @@
 		}
 	},
 	"paths": {
-		"/api/v1/auth/login": {
+		"/api/v1/auth/sign-in": {
 			"post": {
-				"operationId": "SendSignupOTP",
+				"operationId": "SignUp",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -37,16 +75,21 @@
 							"application/json": {
 								"schema": {
 									"properties": {
+										"data": {},
+										"message": {},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										},
 										"status": {
 											"type": "boolean"
-										},
-										"message": {
-											"type": "string"
 										}
 									},
 									"required": [
-										"status",
-										"message"
+										"data",
+										"message",
+										"statusCode",
+										"status"
 									],
 									"type": "object"
 								}
@@ -63,7 +106,9 @@
 					"required": true,
 					"content": {
 						"application/json": {
-							"schema": {}
+							"schema": {
+								"$ref": "#/components/schemas/SignUpDto"
+							}
 						}
 					}
 				}
@@ -72,11 +117,11 @@
 	},
 	"servers": [
 		{
-			"url": "https://dev-api.learnexo.com",
+			"url": "https://dev-api.learnexo.ng",
 			"description": "API Gateway development"
 		},
 		{
-			"url": "http://localhost:8000",
+			"url": "http://localhost:7090",
 			"description": "API Gateway local"
 		}
 	],

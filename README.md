@@ -1,5 +1,5 @@
 # LearNEXO
-# 📚 LearNexo - an Edtack App that infuses AI into learning
+# 📚 LearNexo - an Edtech App that infuses AI into learning
 
 This project is a TypeScript-based EdTech application
 

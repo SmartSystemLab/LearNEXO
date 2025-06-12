@@ -19,14 +19,13 @@
           "description": "Authentication and Authorization Endpoints"
         }
       ],
-
       "servers": [
         {
-          "url": "https://dev-api.learnexo.com",
+          "url": "https://dev-api.learnexo.ng",
           "description": "API Gateway development"
         },
         {
-          "url": "http://localhost:8000",
+          "url": "http://localhost:7090",
           "description": "API Gateway local"
         }
       ]
