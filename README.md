@@ -19,12 +19,8 @@ npm install
 Create a `.env` file in the root:
 
 ```env
-PORT=4040
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
-DB_HOST=localhost
-DB_NAME=smartbooks
-DB_PORT=5432
+PORT=7090
+MONGO_URI=your_db_uri
 ```
 
 ### 3. Run the Project
