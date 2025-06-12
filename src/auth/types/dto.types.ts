@@ -7,3 +7,8 @@ export type SignUpDto = {
     password: string;
     role: EUserRole
 }
+
+export type LoginDto = {
+    email: string;
+    password: string;
+}
