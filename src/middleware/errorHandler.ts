@@ -10,7 +10,7 @@ export const errorResponse: ErrorRequestHandler = (
   err,
   req: Request,
   res: Response<ErrorInterface>,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   res.status(err.status || 500);
   res.json({

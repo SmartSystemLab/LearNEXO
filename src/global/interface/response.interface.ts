@@ -1,6 +1,6 @@
 export interface ResponseInterface {
     message: string;
-    status: boolean;
+    status: boolean | number;
     data?: any;
   }
   

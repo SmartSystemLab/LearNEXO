@@ -13,7 +13,7 @@
     "swagger": "tsoa spec",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
   },
-    "dependencies": {
+  "dependencies": {
     "chalk": "^5.4.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
