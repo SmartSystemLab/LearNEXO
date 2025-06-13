@@ -1,28 +1,38 @@
 {
-    "entryFile": "src/index.ts",
-    "noImplicitAdditionalProperties": "throw-on-extras",
-    "spec": {
-      "outputDirectory": "public",
-      "specVersion": 3,
-      "securityDefinitions": {
-        "api_key": {
-          "type": "apiKey",
-          "name": "access_token",
-          "in": "query"
-        },
-        "tsoa_auth": {
-          "type": "oauth2",
-          "authorizationUrl": "http://swagger.io/api/oauth/dialog",
-          "flow": "implicit",
-          "scopes": {
-            "write:pets": "modify things",
-            "read:pets": "read things"
-          }
-        }
+  "entryFile": "src/index.ts",
+  "controllerPathGlobs": ["src/**/*controller.ts"],
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "spec": {
+    "outputDirectory": "./public",
+    "specVersion": 3,
+    "securityDefinitions": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     },
-    "routes": {
-      "authenticationModule": "./src/config/authentication.ts"
+    "spec": {
+      "tags": [
+        {
+          "name": "Auth",
+          "description": "Authentication and Authorization Endpoints"
+        }
+      ],
+
+      "servers": [
+        {
+          "url": "https://dev-api.learnexo.com",
+          "description": "API Gateway development"
+        },
+        {
+          "url": "http://localhost:8000",
+          "description": "API Gateway local"
+        }
+      ]
     }
+  },
+  "routes": {
+    "authenticationModule": "./src/config/authentication.ts"
   }
-  
+}
