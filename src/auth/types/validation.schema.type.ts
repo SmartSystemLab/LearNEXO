@@ -37,3 +37,15 @@ export const loginUserValidation = Joi.object({
         'any.required': 'Password is required',
     }),
 });
+
+export const verifyValidation = Joi.object({
+    email: Joi.string().email().required().messages({
+        'string.email': 'Email must be valid',
+        'string.empty': 'Email is required',
+        'any.required': 'Email is required',
+    }),
+    otp: Joi.string().required().messages({
+        'string.empty': 'otp is required',
+        'any.required': 'otp is required',
+    }),
+});

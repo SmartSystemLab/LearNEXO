@@ -30,7 +30,7 @@ app.use(
   swaggerUi.setup(undefined, { swaggerOptions: { url: '/swagger.json' } }),
 );
 
-app.post(
+app.get(
   '/health-status',
   async (req: Request, res: Response<ResponseInterface>) => {
     res.status(200).send({

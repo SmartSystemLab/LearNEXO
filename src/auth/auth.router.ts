@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import AuthController from './auth.controller';
 import { createUserValidation, loginUserValidation } from './types/validation.schema.type';
 import { validateRequest } from '../middleware/validation';
-import { LoginDto, SignUpDto } from './types/dto.types';
+import { LoginDto, SignUpDto, VerifyDto } from './types/dto.types';
 
 const authRoute = express.Router();
 
@@ -18,6 +18,30 @@ authRoute.post('/login', validateRequest(loginUserValidation),
  async (req: Request<{}, {}, LoginDto>, res: Response<any>): Promise<any> => {
     const authService = new AuthController();
     const data = await authService.login(req.body)
+    const { statusCode, ...responseData } = data;
+    return res.status(statusCode).send({ ...responseData });
+});
+
+authRoute.post('/verify', validateRequest(loginUserValidation),
+ async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
+    const authService = new AuthController();
+    const data = await authService.verify(req.body)
+    const { statusCode, ...responseData } = data;
+    return res.status(statusCode).send({ ...responseData });
+});
+
+authRoute.post('/verify-otp', validateRequest(loginUserValidation),
+ async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
+    const authService = new AuthController();
+    const data = await authService.verifyOtp(req.body)
+    const { statusCode, ...responseData } = data;
+    return res.status(statusCode).send({ ...responseData });
+});
+
+authRoute.get('/send-otp/:email',
+ async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
+    const authService = new AuthController();
+    const data = await authService.verifyOtp(req.body)
     const { statusCode, ...responseData } = data;
     return res.status(statusCode).send({ ...responseData });
 });
