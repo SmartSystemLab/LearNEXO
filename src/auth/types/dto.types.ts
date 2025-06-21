@@ -5,7 +5,8 @@ export type SignUpDto = {
     lastName: string;
     email: string;
     password: string;
-    role: EUserRole
+    userImage: string;
+    role: EUserRole;
 }
 
 export type LoginDto = {
