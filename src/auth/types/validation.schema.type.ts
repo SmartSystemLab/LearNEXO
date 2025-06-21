@@ -15,6 +15,11 @@ export const createUserValidation = Joi.object({
         'string.empty': 'Email is required',
         'any.required': 'Email is required',
     }),
+    userImage: Joi.string().uri().required().messages({
+        'string.uri': 'Image must be a valid URL',
+        'string.empty': 'Image URL is required',
+        'any.required': 'Image URL is required',
+    }),
     password: Joi.string().required().messages({
         'string.empty': 'Password is required',
         'any.required': 'Password is required',

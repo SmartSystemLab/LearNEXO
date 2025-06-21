@@ -15,8 +15,10 @@
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/streamifier": "^0.1.2",
     "bcryptjs": "^3.0.2",
     "chalk": "^2.4.2",
+    "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "eslint-config-prettier": "^10.1.2",
@@ -30,6 +32,8 @@
     "mongoose": "^8.15.1",
     "mongoose-aggregate-paginate-v2": "^1.1.4",
     "mongoose-paginate-v2": "^1.9.1",
+    "multer": "^2.0.1",
+    "streamifier": "^0.1.1",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
     "zod": "^3.24.3"

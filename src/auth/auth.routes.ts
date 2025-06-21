@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import AuthController from './auth.controller';
-import { createUserValidation, loginUserValidation } from './types/validation.schema.type';
+import { createUserValidation, loginUserValidation, verifyValidation } from './types/validation.schema.type';
 import { validateRequest } from '../middleware/validation';
 import { LoginDto, SignUpDto, VerifyDto } from './types/dto.types';
 
@@ -22,7 +22,7 @@ authRoute.post('/login', validateRequest(loginUserValidation),
     return res.status(statusCode).send({ ...responseData });
 });
 
-authRoute.post('/verify', validateRequest(loginUserValidation),
+authRoute.post('/verify', validateRequest(verifyValidation),
  async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
     const authService = new AuthController();
     const data = await authService.verify(req.body)
@@ -30,7 +30,7 @@ authRoute.post('/verify', validateRequest(loginUserValidation),
     return res.status(statusCode).send({ ...responseData });
 });
 
-authRoute.post('/verify-otp', validateRequest(loginUserValidation),
+authRoute.post('/verify-otp', validateRequest(verifyValidation),
  async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
     const authService = new AuthController();
     const data = await authService.verifyOtp(req.body)

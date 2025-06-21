@@ -8,8 +8,9 @@ import Logging from './middleware/logging';
 import { errorResponse, notFound } from './middleware/errorHandler';
 import { ResponseInterface } from './global/interface/response.interface';
 import mongooseConnection from './connections/database.connection';
-import authRoute from './auth/auth.router';
+import authRoute from './auth/auth.routes';
 import path from 'path';
+import uploadRoute from './upload/upload.routes';
 
 const app: Application = express();
 const httpServer = http.createServer(app);
@@ -40,6 +41,7 @@ app.get(
   },
 );
 app.use('/api/v1/auth', authRoute);
+app.use('/api/v1/upload', uploadRoute);
 
 app.use(notFound);
 app.use(errorResponse);

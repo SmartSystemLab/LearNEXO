@@ -9,6 +9,7 @@ const schema = new Schema(
         lastName: { type: String, default: null },
         email: { type: String, default: null },
         password: { type: String, default: null },
+        userImage: { type: String, default: null },
         role: { type: String, enum: Object.values(EUserRole), default: EUserRole.STUDENT },
         isVerified: { type: Boolean, default: false },
     },
