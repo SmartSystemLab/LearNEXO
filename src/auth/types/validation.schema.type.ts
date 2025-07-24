@@ -125,7 +125,7 @@ export const onboardingValidation = Joi.object({
     'any.required': 'Past exam data is required',
   }),
 
-  photo: Joi.string().uri().required().messages({
+  photo: Joi.string().uri().optional().messages({
     'string.uri': 'Photo must be a valid URL',
     'string.empty': 'Photo is required',
     'any.required': 'Photo is required',
