@@ -1,7 +1,8 @@
-import { Get, Body, Path, Post, Query, Route, Tags } from 'tsoa';
+import { Get, Body, Path, Post, Query, Route, Tags, Inject, Security } from 'tsoa';
 import * as bcrypt from 'bcryptjs';
-import { SignUpDto, LoginDto, VerifyDto } from './types/dto.types';
+import { SignUpDto, LoginDto, VerifyDto, OnboardingDto } from './types/dto.types';
 import Auth from './model/auth.model';
+import Onboarding from './model/onboarding.model';
 import Otp from './model/otp.model';
 import jwt from 'jsonwebtoken'
 
@@ -121,8 +122,8 @@ export default class AuthController {
     @Post('/verify')
     public async verify(@Body() verifyDto: VerifyDto) {
         try {
-            const verification= await this.iVerify(verifyDto)
-            if (!verification.status){
+            const verification = await this.iVerify(verifyDto)
+            if (!verification.status) {
                 return verification;
             }
             await Auth.updateOne({
@@ -180,6 +181,27 @@ export default class AuthController {
                 status: true,
                 statusCode: 200,
                 message: 'Password changed successfully',
+                data: null
+            }
+        } catch (error: any) {
+            return {
+                status: false,
+                statusCode: 500,
+                message: error.message || 'Internal Server Error',
+                data: null
+            }
+        }
+    }
+    
+    @Security('BearerAuth')
+    @Post("/onboarding")
+    public async onboarding(@Body() onboardingDto: OnboardingDto, @Inject() user: any) {
+        try {
+            await Onboarding.create({ ...onboardingDto, user: user.id });
+            return {
+                status: false,
+                statusCode: 200,
+                message: 'Onboarding completed successfully',
                 data: null
             }
         } catch (error: any) {

@@ -18,3 +18,23 @@ export type VerifyDto = {
     email: string;
     otp: string;
 }
+
+export type PastExamDto = {
+  firstTerm: string;
+  secondTerm: string;
+  thirdTerm: string;
+};
+
+export type OnboardingDto = {
+  dateOfBirth: Date;
+  class: string;
+  gender: string;
+  town: string;
+  state: string;
+  schoolName: string;
+  schoolAddress: string;
+  learningStyle: string;
+  pastExam: PastExamDto;
+  photo: string;
+  language: string;
+};

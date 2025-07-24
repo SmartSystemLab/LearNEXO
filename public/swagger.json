@@ -98,6 +98,77 @@
 				],
 				"type": "object"
 			},
+			"PastExamDto": {
+				"properties": {
+					"thirdTerm": {
+						"type": "string"
+					},
+					"secondTerm": {
+						"type": "string"
+					},
+					"firstTerm": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"thirdTerm",
+					"secondTerm",
+					"firstTerm"
+				],
+				"type": "object"
+			},
+			"OnboardingDto": {
+				"properties": {
+					"language": {
+						"type": "string"
+					},
+					"photo": {
+						"type": "string"
+					},
+					"pastExam": {
+						"$ref": "#/components/schemas/PastExamDto"
+					},
+					"learningStyle": {
+						"type": "string"
+					},
+					"schoolAddress": {
+						"type": "string"
+					},
+					"schoolName": {
+						"type": "string"
+					},
+					"state": {
+						"type": "string"
+					},
+					"town": {
+						"type": "string"
+					},
+					"gender": {
+						"type": "string"
+					},
+					"class": {
+						"type": "string"
+					},
+					"dateOfBirth": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"required": [
+					"language",
+					"photo",
+					"pastExam",
+					"learningStyle",
+					"schoolAddress",
+					"schoolName",
+					"state",
+					"town",
+					"gender",
+					"class",
+					"dateOfBirth"
+				],
+				"type": "object"
+			},
 			"QuestionOptionsDto": {
 				"properties": {
 					"e": {
@@ -605,6 +676,59 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/LoginDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/onboarding": {
+			"post": {
+				"operationId": "Onboarding",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {},
+										"message": {},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										},
+										"status": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"statusCode",
+										"status"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/OnboardingDto"
 							}
 						}
 					}
