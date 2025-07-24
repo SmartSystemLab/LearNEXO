@@ -40,6 +40,14 @@ authRoute.post('/verify-otp', validateRequest(verifyValidation),
     return res.status(statusCode).send({ ...responseData });
 });
 
+authRoute.post('/reset-password', validateRequest(loginUserValidation),
+ async (req: Request<{}, {}, LoginDto>, res: Response<any>): Promise<any> => {
+    const authService = new AuthController();
+    const data = await authService.resetPassword(req.body)
+    const { statusCode, ...responseData } = data;
+    return res.status(statusCode).send({ ...responseData });
+});
+
 authRoute.get('/send-otp/:email',
  async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
     const authService = new AuthController();
