@@ -37,4 +37,6 @@ export type OnboardingDto = {
   pastExam: PastExamDto;
   photo: string;
   language: string;
+  residentialAddress: string;
+  stateOfOrigin: string;
 };

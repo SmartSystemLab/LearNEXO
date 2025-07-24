@@ -8,6 +8,8 @@ const schema = new Schema(
         dateOfBirth: { type: Date, default: null },
         class: { type: String, default: null },
         gender: { type: String, default: null },
+        stateOfOrigin: { type: String, default: null },
+        residentialAddress: { type: String, default: null },
         town: { type: String, default: null },
         state: { type: String, default: null },
         schoolName: { type: String, default: null },
