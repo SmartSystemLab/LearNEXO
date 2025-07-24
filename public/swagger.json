@@ -97,6 +97,71 @@
 					"email"
 				],
 				"type": "object"
+			},
+			"QuestionOptionsDto": {
+				"properties": {
+					"e": {
+						"type": "string"
+					},
+					"d": {
+						"type": "string"
+					},
+					"c": {
+						"type": "string"
+					},
+					"b": {
+						"type": "string"
+					},
+					"a": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"e",
+					"d",
+					"c",
+					"b",
+					"a"
+				],
+				"type": "object"
+			},
+			"CreateQuestionDto": {
+				"properties": {
+					"category": {
+						"type": "string",
+						"enum": [
+							"Assessment",
+							"Questionnaire"
+						]
+					},
+					"answer": {
+						"type": "string",
+						"enum": [
+							"a",
+							"b",
+							"c",
+							"d",
+							"e"
+						]
+					},
+					"options": {
+						"$ref": "#/components/schemas/QuestionOptionsDto"
+					},
+					"question": {
+						"type": "string"
+					},
+					"questionNumber": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"category",
+					"answer",
+					"options",
+					"question",
+					"questionNumber"
+				],
+				"type": "object"
 			}
 		},
 		"securitySchemes": {
@@ -540,6 +605,164 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/LoginDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/assessment/{category}": {
+			"get": {
+				"operationId": "GetAssessment",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"properties": {
+												"data": {
+													"items": {},
+													"type": "array"
+												},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
+										},
+										{
+											"properties": {
+												"data": {},
+												"message": {},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "category",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"Assessment",
+								"Questionnaire"
+							]
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/assessment": {
+			"post": {
+				"operationId": "CreateAssessment",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"properties": {
+												"data": {},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
+										},
+										{
+											"properties": {
+												"data": {},
+												"message": {},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"items": {
+									"$ref": "#/components/schemas/CreateQuestionDto"
+								},
+								"type": "array"
 							}
 						}
 					}

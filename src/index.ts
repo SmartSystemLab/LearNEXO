@@ -11,6 +11,7 @@ import mongooseConnection from './connections/database.connection';
 import authRoute from './auth/auth.routes';
 import path from 'path';
 import uploadRoute from './upload/upload.routes';
+import assessmentRoute from './assessment/assessment.routes';
 
 const app: Application = express();
 const httpServer = http.createServer(app);
@@ -32,7 +33,7 @@ app.use(
 );
 
 app.get(
-  '/health-status',
+  '/',
   async (req: Request, res: Response<ResponseInterface>) => {
     res.status(200).send({
       message: '🚀 LearNexo server is up and running',
@@ -42,6 +43,7 @@ app.get(
 );
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/upload', uploadRoute);
+app.use('/api/v1/assessment', assessmentRoute);
 
 app.use(notFound);
 app.use(errorResponse);
