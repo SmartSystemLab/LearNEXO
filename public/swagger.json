@@ -119,6 +119,12 @@
 			},
 			"OnboardingDto": {
 				"properties": {
+					"stateOfOrigin": {
+						"type": "string"
+					},
+					"residentialAddress": {
+						"type": "string"
+					},
 					"language": {
 						"type": "string"
 					},
@@ -155,6 +161,8 @@
 					}
 				},
 				"required": [
+					"stateOfOrigin",
+					"residentialAddress",
 					"language",
 					"photo",
 					"pastExam",
@@ -811,6 +819,91 @@
 								"Assessment",
 								"Questionnaire"
 							]
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/assessment/{subject}/{gradeClass}": {
+			"get": {
+				"operationId": "GetQuestions",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"properties": {
+												"data": {
+													"items": {},
+													"type": "array"
+												},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
+										},
+										{
+											"properties": {
+												"data": {},
+												"message": {},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "subject",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "gradeClass",
+						"required": true,
+						"schema": {
+							"type": "string"
 						}
 					}
 				]

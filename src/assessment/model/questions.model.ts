@@ -23,7 +23,21 @@ const schema = new Schema(
       type: String,
       enum: ['Assessment', 'Questionnaire'],
       default: 'Assessment',
-      required: true,}
+      required: true,
+    },
+    class: {
+      type: String,
+      required: true,
+      default: 'N/A',
+    },
+    subject: {
+      type: String,
+      required: true,
+      default: 'N/A',
+    },
+    subCategory: {
+      type: String,
+    }
   },
   {
     toJSON: { virtuals: true },

@@ -25,6 +25,26 @@ export default class AssessmentController {
         }
     }
 
+    @Get("/{subject}/{gradeClass}")
+    public async getQuestions(@Path() subject: string, @Path() gradeClass: string) {
+        try {
+            const data = await Question.find({subject, class: gradeClass});
+            return {
+                statusCode: 200,
+                status: true,
+                message: 'Assessments retrieved successfully',
+                data
+            };
+        } catch (error: any) {
+            return {
+                status: false,
+                statusCode: 500,
+                message: error.message || 'Internal Server Error',
+                data: null
+            }
+        }
+    }
+
     @Post("/")
     public async createAssessment( @Body() createQuestionDto: CreateQuestionDto[]) {
         try {
