@@ -25,7 +25,7 @@
           "description": "API Gateway development"
         },
         {
-          "url": "http://localhost:7090",
+          "url": "http://localhost:7070",
           "description": "API Gateway local"
         }
       ]

@@ -19,7 +19,7 @@ npm install
 Create a `.env` file in the root:
 
 ```env
-PORT=7090
+PORT=7070
 MONGO_URI=your_db_uri
 ```
 

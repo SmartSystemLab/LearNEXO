@@ -241,6 +241,95 @@
 					"questionNumber"
 				],
 				"type": "object"
+			},
+			"Record_string.number_": {
+				"properties": {},
+				"additionalProperties": {
+					"type": "number",
+					"format": "double"
+				},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"TopicDef": {
+				"properties": {
+					"prerequisite": {
+						"type": "string",
+						"nullable": true
+					},
+					"tags": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"name": {
+						"type": "string"
+					},
+					"topic_id": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"prerequisite",
+					"tags",
+					"name",
+					"topic_id"
+				],
+				"type": "object"
+			},
+			"PredictPayload": {
+				"properties": {
+					"enrich_with_llm": {
+						"type": "boolean"
+					},
+					"mastery_threshold": {
+						"type": "number",
+						"format": "double"
+					},
+					"topics": {
+						"items": {
+							"$ref": "#/components/schemas/TopicDef"
+						},
+						"type": "array"
+					},
+					"scores": {
+						"$ref": "#/components/schemas/Record_string.number_"
+					},
+					"student": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"enrich_with_llm",
+					"mastery_threshold",
+					"topics",
+					"scores",
+					"student"
+				],
+				"type": "object"
+			},
+			"AnswerQuestionDto": {
+				"properties": {
+					"answer": {
+						"type": "string",
+						"enum": [
+							"a",
+							"b",
+							"c",
+							"d",
+							"e"
+						]
+					},
+					"questionId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"answer",
+					"questionId"
+				],
+				"type": "object"
 			}
 		},
 		"securitySchemes": {
@@ -985,6 +1074,88 @@
 					}
 				}
 			}
+		},
+		"/api/v1/assessment/get-score": {
+			"post": {
+				"operationId": "GetScore",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"properties": {
+												"data": {},
+												"date": {
+													"$ref": "#/components/schemas/PredictPayload"
+												},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"date",
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
+										},
+										{
+											"properties": {
+												"date": {},
+												"data": {},
+												"message": {},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"items": {
+									"$ref": "#/components/schemas/AnswerQuestionDto"
+								},
+								"type": "array"
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"servers": [
@@ -993,7 +1164,7 @@
 			"description": "API Gateway development"
 		},
 		{
-			"url": "http://localhost:7090",
+			"url": "http://localhost:7070",
 			"description": "API Gateway local"
 		}
 	],

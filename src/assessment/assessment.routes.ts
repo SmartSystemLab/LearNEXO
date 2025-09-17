@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import AssessmentController from './assessment.controller';
 import { createQuestionValidation } from './types/validation.schema';
 import { validateRequest } from '../middleware/validation';
-import { CreateQuestionDto } from './types/dto.types';
+import { AnswerQuestionDto, CreateQuestionDto } from './types/dto.types';
 
 const assessmentRoute = express.Router();
 
@@ -24,6 +24,13 @@ assessmentRoute.get('/:category', async (req: Request<{category: 'Assessment' | 
 assessmentRoute.get('/:subject/:gradeClass', async (req: Request<{subject: string, gradeClass: string }, {}, {}>, res: Response<any>): Promise<any> => {
     const assessmentService = new AssessmentController();
     const data = await assessmentService.getQuestions(req.params.subject, req.params.gradeClass);
+    const { statusCode, ...responseData } = data;
+    return res.status(statusCode).send({ ...responseData });
+});
+
+assessmentRoute.post('/get-score', async (req: Request<{}, {}, AnswerQuestionDto[]>, res: Response<any>): Promise<any> => {
+    const assessmentService = new AssessmentController();
+    const data = await assessmentService.getScore(req.body);
     const { statusCode, ...responseData } = data;
     return res.status(statusCode).send({ ...responseData });
 });
