@@ -242,73 +242,6 @@
 				],
 				"type": "object"
 			},
-			"Record_string.number_": {
-				"properties": {},
-				"additionalProperties": {
-					"type": "number",
-					"format": "double"
-				},
-				"type": "object",
-				"description": "Construct a type with a set of properties K of type T"
-			},
-			"TopicDef": {
-				"properties": {
-					"prerequisite": {
-						"type": "string",
-						"nullable": true
-					},
-					"tags": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"name": {
-						"type": "string"
-					},
-					"topic_id": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"prerequisite",
-					"tags",
-					"name",
-					"topic_id"
-				],
-				"type": "object"
-			},
-			"PredictPayload": {
-				"properties": {
-					"enrich_with_llm": {
-						"type": "boolean"
-					},
-					"mastery_threshold": {
-						"type": "number",
-						"format": "double"
-					},
-					"topics": {
-						"items": {
-							"$ref": "#/components/schemas/TopicDef"
-						},
-						"type": "array"
-					},
-					"scores": {
-						"$ref": "#/components/schemas/Record_string.number_"
-					},
-					"student": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"enrich_with_llm",
-					"mastery_threshold",
-					"topics",
-					"scores",
-					"student"
-				],
-				"type": "object"
-			},
 			"AnswerQuestionDto": {
 				"properties": {
 					"answer": {
@@ -1088,9 +1021,6 @@
 										{
 											"properties": {
 												"data": {},
-												"date": {
-													"$ref": "#/components/schemas/PredictPayload"
-												},
 												"message": {
 													"type": "string"
 												},
@@ -1103,7 +1033,7 @@
 												}
 											},
 											"required": [
-												"date",
+												"data",
 												"message",
 												"status",
 												"statusCode"
@@ -1112,7 +1042,6 @@
 										},
 										{
 											"properties": {
-												"date": {},
 												"data": {},
 												"message": {},
 												"statusCode": {

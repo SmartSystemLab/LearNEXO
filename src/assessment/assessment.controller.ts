@@ -187,11 +187,14 @@ export default class AssessmentController {
         enrich_with_llm: true
       });
 
+      const data =await this.callPredict(predictBody)
+      console.log("Predict response:", data);
+
       return {
         statusCode: 200,
         status: true,
         message: "Scores computed successfully",
-        date: predictBody
+        data
 
       };
     } catch (error: any) {
@@ -237,13 +240,13 @@ export default class AssessmentController {
 
   async callPredict(resp: unknown) {
     const client = axios.create({
-      baseURL: process.env.PREDICT_API_URL || "http://localhost:8000",
+      baseURL: process.env.PREDICT_API_URL || "http://localhost:8001",
       headers: { "Content-Type": "application/json" },
       timeout: 15000,
     });
     try {
       const { data } = await client.post("/predict", resp);
-      return data; 
+      return data;
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         const detail =
