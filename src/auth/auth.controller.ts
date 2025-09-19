@@ -24,12 +24,13 @@ export default class AuthController {
             const hashedPassword = await bcrypt.hash(signUpDto.password, 10);
             this.iSendOtp(signUpDto.email)
             signUpDto.password = hashedPassword;
-            await Auth.create(signUpDto)
+            const userData = await Auth.create(signUpDto)
+            userData.password = undefined;
             return {
                 statusCode: 201,
                 status: true,
                 message: 'User created successfully',
-                data: null
+                data: userData
             }
         } catch (error: any) {
             return {
@@ -192,12 +193,11 @@ export default class AuthController {
             }
         }
     }
-    
-    @Security('BearerAuth')
-    @Post("/onboarding")
-    public async onboarding(@Body() onboardingDto: OnboardingDto, @Inject() user: any) {
+
+    @Post("/onboarding/{userId}")
+    public async onboarding(@Body() onboardingDto: OnboardingDto, userId: string) {
         try {
-            await Onboarding.create({ ...onboardingDto, user: user.id });
+            await Onboarding.create({ ...onboardingDto, user: userId });
             return {
                 status: false,
                 statusCode: 200,

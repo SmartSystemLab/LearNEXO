@@ -374,24 +374,50 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"properties": {
-										"data": {},
-										"message": {},
-										"statusCode": {
-											"type": "number",
-											"format": "double"
+									"anyOf": [
+										{
+											"properties": {
+												"data": {},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
 										},
-										"status": {
-											"type": "boolean"
+										{
+											"properties": {
+												"data": {},
+												"message": {},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
 										}
-									},
-									"required": [
-										"data",
-										"message",
-										"statusCode",
-										"status"
-									],
-									"type": "object"
+									]
 								}
 							}
 						}
@@ -712,7 +738,7 @@
 				}
 			}
 		},
-		"/api/v1/auth/onboarding": {
+		"/api/v1/auth/onboarding/{userId}": {
 			"post": {
 				"operationId": "Onboarding",
 				"responses": {
@@ -747,12 +773,17 @@
 				"tags": [
 					"Auth"
 				],
-				"security": [
+				"security": [],
+				"parameters": [
 					{
-						"BearerAuth": []
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
 					}
 				],
-				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"content": {

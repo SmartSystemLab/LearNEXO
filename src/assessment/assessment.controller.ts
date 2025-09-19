@@ -188,7 +188,6 @@ export default class AssessmentController {
       });
 
       const data =await this.callPredict(predictBody)
-      console.log("Predict response:", data);
 
       return {
         statusCode: 200,
@@ -240,7 +239,7 @@ export default class AssessmentController {
 
   async callPredict(resp: unknown) {
     const client = axios.create({
-      baseURL: process.env.PREDICT_API_URL || "http://localhost:8001",
+      baseURL: process.env.PREDICT_API_URL || "http://127.0.0.1:8001",
       headers: { "Content-Type": "application/json" },
       timeout: 15000,
     });

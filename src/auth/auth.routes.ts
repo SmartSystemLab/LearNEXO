@@ -49,17 +49,17 @@ authRoute.post('/reset-password', validateRequest(loginUserValidation),
 });
 
 authRoute.get('/send-otp/:email',
- async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
+ async (req: Request<{email: string}, {}>, res: Response<any>): Promise<any> => {
     const authService = new AuthController();
-    const data = await authService.verifyOtp(req.body)
+    const data = await authService.sendOtp(req.params.email)
     const { statusCode, ...responseData } = data;
     return res.status(statusCode).send({ ...responseData });
 });
 
-authRoute.post('/onboarding', verifyJwt, validateRequest(onboardingValidation), 
- async (req: AuthenticatedRequest<{}, {}, OnboardingDto>, res: Response<any>): Promise<any> => {
+authRoute.post('/onboarding/:userId', validateRequest(onboardingValidation), 
+ async (req: AuthenticatedRequest<{userId: string}, {}, OnboardingDto>, res: Response<any>): Promise<any> => {
     const authService = new AuthController();
-    const data = await authService.onboarding(req.body, req.user);
+    const data = await authService.onboarding(req.body, req.params.userId as string);
     const { statusCode, ...responseData } = data;
     return res.status(statusCode).send({ ...responseData });
 });
