@@ -805,53 +805,29 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"properties": {
-												"data": {
-													"items": {},
-													"type": "array"
-												},
-												"message": {
-													"type": "string"
-												},
-												"status": {
-													"type": "boolean"
-												},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												}
-											},
-											"required": [
-												"data",
-												"message",
-												"status",
-												"statusCode"
-											],
-											"type": "object"
+									"properties": {
+										"data": {
+											"items": {},
+											"type": "array"
 										},
-										{
-											"properties": {
-												"data": {},
-												"message": {},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												},
-												"status": {
-													"type": "boolean"
-												}
-											},
-											"required": [
-												"data",
-												"message",
-												"statusCode",
-												"status"
-											],
-											"type": "object"
+										"message": {
+											"type": "string"
+										},
+										"status": {
+											"type": "boolean"
+										},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
 										}
-									]
+									},
+									"required": [
+										"data",
+										"message",
+										"status",
+										"statusCode"
+									],
+									"type": "object"
 								}
 							}
 						}
@@ -886,53 +862,29 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"properties": {
-												"data": {
-													"items": {},
-													"type": "array"
-												},
-												"message": {
-													"type": "string"
-												},
-												"status": {
-													"type": "boolean"
-												},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												}
-											},
-											"required": [
-												"data",
-												"message",
-												"status",
-												"statusCode"
-											],
-											"type": "object"
+									"properties": {
+										"data": {
+											"items": {},
+											"type": "array"
 										},
-										{
-											"properties": {
-												"data": {},
-												"message": {},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												},
-												"status": {
-													"type": "boolean"
-												}
-											},
-											"required": [
-												"data",
-												"message",
-												"statusCode",
-												"status"
-											],
-											"type": "object"
+										"message": {
+											"type": "string"
+										},
+										"status": {
+											"type": "boolean"
+										},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
 										}
-									]
+									},
+									"required": [
+										"data",
+										"message",
+										"status",
+										"statusCode"
+									],
+									"type": "object"
 								}
 							}
 						}
@@ -996,7 +948,9 @@
 										{
 											"properties": {
 												"data": {},
-												"message": {},
+												"message": {
+													"type": "string"
+												},
 												"statusCode": {
 													"type": "number",
 													"format": "double"
@@ -1048,50 +1002,26 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"anyOf": [
-										{
-											"properties": {
-												"data": {},
-												"message": {
-													"type": "string"
-												},
-												"status": {
-													"type": "boolean"
-												},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												}
-											},
-											"required": [
-												"data",
-												"message",
-												"status",
-												"statusCode"
-											],
-											"type": "object"
+									"properties": {
+										"data": {},
+										"message": {
+											"type": "string"
 										},
-										{
-											"properties": {
-												"data": {},
-												"message": {},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												},
-												"status": {
-													"type": "boolean"
-												}
-											},
-											"required": [
-												"data",
-												"message",
-												"statusCode",
-												"status"
-											],
-											"type": "object"
+										"status": {
+											"type": "boolean"
+										},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
 										}
-									]
+									},
+									"required": [
+										"data",
+										"message",
+										"status",
+										"statusCode"
+									],
+									"type": "object"
 								}
 							}
 						}

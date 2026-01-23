@@ -1,68 +1,86 @@
-import { Get, Body, Path, Post, Query, Route, Tags } from 'tsoa';
-import Question from './model/questions.model';
-import { AnswerQuestionDto, BuildOptions, CreateQuestionDto, PredictPayload, ScoreResponse, TopicDef } from './types/dto.types';
-import { Types } from 'mongoose';
+import { Get, Body, Path, Post, Route, Tags } from "tsoa";
+import Question from "./model/questions.model";
+import {
+  AnswerQuestionDto,
+  BuildOptions,
+  CreateQuestionDto,
+  PredictPayload,
+  ScoreResponse,
+  TopicDef,
+} from "./types/dto.types";
+import { Types } from "mongoose";
 import axios from "axios";
 
-@Tags('Assessment')
-@Route('api/v1/assessment')
+@Tags("Assessment")
+@Route("api/v1/assessment")
 export default class AssessmentController {
   @Get("/{category}")
-  public async getAssessment(@Path() category: 'Assessment' | 'Questionnaire') {
+  public async getAssessment(@Path() category: "Assessment" | "Questionnaire") {
     try {
       const data = await Question.find({ category });
       return {
         statusCode: 200,
         status: true,
-        message: 'Assessments retrieved successfully',
-        data
+        message: "Assessments retrieved successfully",
+        data,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Internal Server Error";
       return {
         status: false,
         statusCode: 500,
-        message: error.message || 'Internal Server Error',
-        data: null
-      }
+        message: message,
+        data: null,
+      };
     }
   }
 
   @Get("/{subject}/{gradeClass}")
-  public async getQuestions(@Path() subject: string, @Path() gradeClass: string) {
+  public async getQuestions(
+    @Path() subject: string,
+    @Path() gradeClass: string,
+  ) {
     try {
       const data = await Question.find({ subject, class: gradeClass });
       return {
         statusCode: 200,
         status: true,
-        message: 'Assessments retrieved successfully',
-        data
+        message: "Assessments retrieved successfully",
+        data,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Internal Server Error";
       return {
         status: false,
         statusCode: 500,
-        message: error.message || 'Internal Server Error',
-        data: null
-      }
+        message: message,
+        data: null,
+      };
     }
   }
 
   @Post("/")
-  public async createAssessment(@Body() createQuestionDto: CreateQuestionDto[]) {
+  public async createAssessment(
+    @Body() createQuestionDto: CreateQuestionDto[],
+  ) {
     try {
-      await Question.insertMany(createQuestionDto)
+      await Question.insertMany(createQuestionDto);
       return {
         statusCode: 200,
         status: true,
-        message: 'Assessments submitted successfully',
+        message: "Assessments submitted successfully",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Internal Server Error";
       return {
         status: false,
         statusCode: 500,
-        message: error.message || 'Internal Server Error',
-        data: null
-      }
+        message: message,
+        data: null,
+      };
     }
   }
 
@@ -78,7 +96,10 @@ export default class AssessmentController {
         };
       }
 
-      const norm = (v: unknown) => String(v ?? "").trim().toLowerCase();
+      const norm = (v: unknown) =>
+        String(v ?? "")
+          .trim()
+          .toLowerCase();
 
       // collect valid ObjectIds
       const ids = answers
@@ -89,7 +110,7 @@ export default class AssessmentController {
       // fetch only needed fields; include 'answer' (the dataset’s correct key)
       const questions = await Question.find({ _id: { $in: ids } })
         .select(
-          "_id subCategory subcategory topic subTopic subject answer correctAnswer correctAnswers"
+          "_id subCategory subcategory topic subTopic subject answer correctAnswer correctAnswers",
         )
         .lean();
 
@@ -99,7 +120,7 @@ export default class AssessmentController {
         { subcategory: string; corrects: Set<string> }
       >();
 
-      for (const q of questions as any[]) {
+      for (const q of questions) {
         const subcategory =
           q.subCategory ||
           q.subcategory ||
@@ -108,7 +129,7 @@ export default class AssessmentController {
           q.subject ||
           "Uncategorized";
 
-        const correctsRaw: any[] = Array.isArray(q.correctAnswers)
+        const correctsRaw: unknown[] = Array.isArray(q.correctAnswers)
           ? q.correctAnswers
           : q.correctAnswer != null
             ? [q.correctAnswer]
@@ -159,57 +180,54 @@ export default class AssessmentController {
       };
 
       const mapping = {
-        "Reading": {
+        Reading: {
           topic_id: "read",
           name: "Reading",
           tags: ["english", "read"],
-          prerequisite: null
+          prerequisite: null,
         },
-        "Writing": {
+        Writing: {
           topic_id: "Writing",
           name: "Fractions",
           tags: ["english", "write"],
-          prerequisite: null
+          prerequisite: null,
         },
         "Listening & Speaking": {
           topic_id: "list-speak",
           name: "Listening & Speaking",
           tags: ["english", "list-speak"],
-          prerequisite: null
-        }
+          prerequisite: null,
+        },
       };
-
 
       const predictBody = this.buildPredictPayload(resp, {
         student: "student_1",
         mapping,
         mastery_threshold: 70,
-        enrich_with_llm: true
+        enrich_with_llm: true,
       });
 
-      const data =await this.callPredict(predictBody)
+      const data = await this.callPredict(predictBody);
 
       return {
         statusCode: 200,
         status: true,
         message: "Scores computed successfully",
-        data
-
+        data,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Internal Server Error";
       return {
         status: false,
         statusCode: 500,
-        message: error?.message || "Internal Server Error",
+        message: message,
         data: null,
       };
     }
   }
 
-  buildPredictPayload(
-    resp: ScoreResponse,
-    opts: BuildOptions
-  ): PredictPayload {
+  buildPredictPayload(resp: ScoreResponse, opts: BuildOptions): PredictPayload {
     const {
       student,
       mapping,
@@ -246,7 +264,7 @@ export default class AssessmentController {
     try {
       const { data } = await client.post("/predict", resp);
       return data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const detail =
           err.response?.data?.detail ||

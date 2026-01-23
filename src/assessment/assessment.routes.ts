@@ -1,38 +1,73 @@
-import express, { Request, Response } from 'express';
-import AssessmentController from './assessment.controller';
-import { createQuestionValidation } from './types/validation.schema';
-import { validateRequest } from '../middleware/validation';
-import { AnswerQuestionDto, CreateQuestionDto } from './types/dto.types';
+import express, { Request, Response } from "express";
+import AssessmentController from "./assessment.controller";
+import { createQuestionValidation } from "./types/validation.schema";
+import { validateRequest } from "../middleware/validation";
+import { AnswerQuestionDto, CreateQuestionDto } from "./types/dto.types";
 
 const assessmentRoute = express.Router();
 
-assessmentRoute.post('/', validateRequest(createQuestionValidation), 
-async (req: Request<{}, {}, CreateQuestionDto[]>, res: Response<any>): Promise<any> => {
+assessmentRoute.post(
+  "/",
+  validateRequest(createQuestionValidation),
+  async (
+    req: Request<Record<string, never>, unknown, CreateQuestionDto[]>,
+    res: Response<unknown>,
+  ): Promise<void> => {
     const assessmentService = new AssessmentController();
     const data = await assessmentService.createAssessment(req.body);
     const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
+    res.status(statusCode).send({ ...responseData });
+  },
+);
 
-assessmentRoute.get('/:category', async (req: Request<{category: 'Assessment' | 'Questionnaire'}, {}, {}>, res: Response<any>): Promise<any> => {
+assessmentRoute.get(
+  "/:category",
+  async (
+    req: Request<
+      { category: "Assessment" | "Questionnaire" },
+      Record<string, never>,
+      Record<string, never>
+    >,
+    res: Response<unknown>,
+  ): Promise<void> => {
     const assessmentService = new AssessmentController();
     const data = await assessmentService.getAssessment(req.params.category);
     const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
+    res.status(statusCode).send({ ...responseData });
+  },
+);
 
-assessmentRoute.get('/:subject/:gradeClass', async (req: Request<{subject: string, gradeClass: string }, {}, {}>, res: Response<any>): Promise<any> => {
+assessmentRoute.get(
+  "/:subject/:gradeClass",
+  async (
+    req: Request<
+      { subject: string; gradeClass: string },
+      Record<string, never>,
+      Record<string, never>
+    >,
+    res: Response<unknown>,
+  ): Promise<void> => {
     const assessmentService = new AssessmentController();
-    const data = await assessmentService.getQuestions(req.params.subject, req.params.gradeClass);
+    const data = await assessmentService.getQuestions(
+      req.params.subject,
+      req.params.gradeClass,
+    );
     const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
+    res.status(statusCode).send({ ...responseData });
+  },
+);
 
-assessmentRoute.post('/get-score', async (req: Request<{}, {}, AnswerQuestionDto[]>, res: Response<any>): Promise<any> => {
+assessmentRoute.post(
+  "/get-score",
+  async (
+    req: Request<Record<string, never>, unknown, AnswerQuestionDto[]>,
+    res: Response<unknown>,
+  ): Promise<void> => {
     const assessmentService = new AssessmentController();
     const data = await assessmentService.getScore(req.body);
     const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
+    res.status(statusCode).send({ ...responseData });
+  },
+);
 
 export default assessmentRoute;
