@@ -6,7 +6,265 @@
 		"parameters": {},
 		"requestBodies": {},
 		"responses": {},
-		"schemas": {},
+		"schemas": {
+			"ErrorInterface": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"status": {
+						"type": "boolean"
+					},
+					"data": {},
+					"stack": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"message",
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"EUserRole": {
+				"enum": [
+					"parent",
+					"student",
+					"teacher",
+					"admin",
+					"super_admin"
+				],
+				"type": "string"
+			},
+			"SignUpDto": {
+				"properties": {
+					"role": {
+						"$ref": "#/components/schemas/EUserRole"
+					},
+					"userImage": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"lastName": {
+						"type": "string"
+					},
+					"firstName": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"role",
+					"userImage",
+					"password",
+					"email",
+					"lastName",
+					"firstName"
+				],
+				"type": "object"
+			},
+			"LoginDto": {
+				"properties": {
+					"password": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"password",
+					"email"
+				],
+				"type": "object"
+			},
+			"VerifyDto": {
+				"properties": {
+					"otp": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"otp",
+					"email"
+				],
+				"type": "object"
+			},
+			"PastExamDto": {
+				"properties": {
+					"thirdTerm": {
+						"type": "string"
+					},
+					"secondTerm": {
+						"type": "string"
+					},
+					"firstTerm": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"thirdTerm",
+					"secondTerm",
+					"firstTerm"
+				],
+				"type": "object"
+			},
+			"OnboardingDto": {
+				"properties": {
+					"stateOfOrigin": {
+						"type": "string"
+					},
+					"residentialAddress": {
+						"type": "string"
+					},
+					"language": {
+						"type": "string"
+					},
+					"photo": {
+						"type": "string"
+					},
+					"pastExam": {
+						"$ref": "#/components/schemas/PastExamDto"
+					},
+					"learningStyle": {
+						"type": "string"
+					},
+					"schoolAddress": {
+						"type": "string"
+					},
+					"schoolName": {
+						"type": "string"
+					},
+					"state": {
+						"type": "string"
+					},
+					"town": {
+						"type": "string"
+					},
+					"gender": {
+						"type": "string"
+					},
+					"class": {
+						"type": "string"
+					},
+					"dateOfBirth": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"required": [
+					"stateOfOrigin",
+					"residentialAddress",
+					"language",
+					"photo",
+					"pastExam",
+					"learningStyle",
+					"schoolAddress",
+					"schoolName",
+					"state",
+					"town",
+					"gender",
+					"class",
+					"dateOfBirth"
+				],
+				"type": "object"
+			},
+			"QuestionOptionsDto": {
+				"properties": {
+					"e": {
+						"type": "string"
+					},
+					"d": {
+						"type": "string"
+					},
+					"c": {
+						"type": "string"
+					},
+					"b": {
+						"type": "string"
+					},
+					"a": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"e",
+					"d",
+					"c",
+					"b",
+					"a"
+				],
+				"type": "object"
+			},
+			"CreateQuestionDto": {
+				"properties": {
+					"category": {
+						"type": "string",
+						"enum": [
+							"Assessment",
+							"Questionnaire"
+						]
+					},
+					"answer": {
+						"type": "string",
+						"enum": [
+							"a",
+							"b",
+							"c",
+							"d",
+							"e"
+						]
+					},
+					"options": {
+						"$ref": "#/components/schemas/QuestionOptionsDto"
+					},
+					"question": {
+						"type": "string"
+					},
+					"questionNumber": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"category",
+					"answer",
+					"options",
+					"question",
+					"questionNumber"
+				],
+				"type": "object"
+			},
+			"AnswerQuestionDto": {
+				"properties": {
+					"answer": {
+						"type": "string",
+						"enum": [
+							"a",
+							"b",
+							"c",
+							"d",
+							"e"
+						]
+					},
+					"questionId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"answer",
+					"questionId"
+				],
+				"type": "object"
+			}
+		},
 		"securitySchemes": {
 			"BearerAuth": {
 				"type": "http",
@@ -27,9 +285,265 @@
 		}
 	},
 	"paths": {
+		"/api/v1/upload": {
+			"post": {
+				"operationId": "Upload",
+				"responses": {
+					"200": {
+						"description": "File uploaded successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {},
+										"message": {
+											"type": "string"
+										},
+										"status": {
+											"type": "boolean"
+										},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"status",
+										"statusCode"
+									],
+									"type": "object"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorInterface"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal Server Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorInterface"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Upload"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"file": {
+										"type": "string",
+										"format": "binary"
+									}
+								},
+								"required": [
+									"file"
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/sign-in": {
+			"post": {
+				"operationId": "SignUp",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"properties": {
+												"data": {},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
+										},
+										{
+											"properties": {
+												"data": {},
+												"message": {},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SignUpDto"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/v1/auth/login": {
 			"post": {
-				"operationId": "SendSignupOTP",
+				"operationId": "Login",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"properties": {
+												"data": {
+													"properties": {
+														"user": {
+															"properties": {
+																"role": {},
+																"email": {},
+																"lastName": {},
+																"firstName": {},
+																"id": {}
+															},
+															"required": [
+																"role",
+																"email",
+																"lastName",
+																"firstName",
+																"id"
+															],
+															"type": "object"
+														},
+														"accessToken": {}
+													},
+													"required": [
+														"user",
+														"accessToken"
+													],
+													"type": "object"
+												},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
+										},
+										{
+											"properties": {
+												"data": {},
+												"message": {},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/send-otp/{email}": {
+			"get": {
+				"operationId": "SendOtp",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -37,16 +551,71 @@
 							"application/json": {
 								"schema": {
 									"properties": {
+										"data": {},
+										"message": {
+											"type": "string"
+										},
 										"status": {
 											"type": "boolean"
 										},
-										"message": {
-											"type": "string"
+										"statusCode": {
+											"type": "number",
+											"format": "double"
 										}
 									},
 									"required": [
+										"data",
+										"message",
 										"status",
-										"message"
+										"statusCode"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "email",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/auth/verify": {
+			"post": {
+				"operationId": "Verify",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {},
+										"message": {},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										},
+										"status": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"statusCode",
+										"status"
 									],
 									"type": "object"
 								}
@@ -63,7 +632,416 @@
 					"required": true,
 					"content": {
 						"application/json": {
-							"schema": {}
+							"schema": {
+								"$ref": "#/components/schemas/VerifyDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/verify-otp": {
+			"post": {
+				"operationId": "VerifyOtp",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {},
+										"message": {},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										},
+										"status": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"statusCode",
+										"status"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/VerifyDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/reset-password": {
+			"post": {
+				"operationId": "ResetPassword",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {},
+										"message": {},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										},
+										"status": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"statusCode",
+										"status"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/auth/onboarding/{userId}": {
+			"post": {
+				"operationId": "Onboarding",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {},
+										"message": {},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										},
+										"status": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"statusCode",
+										"status"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/OnboardingDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/assessment/{category}": {
+			"get": {
+				"operationId": "GetAssessment",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {
+											"items": {},
+											"type": "array"
+										},
+										"message": {
+											"type": "string"
+										},
+										"status": {
+											"type": "boolean"
+										},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"status",
+										"statusCode"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "category",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"Assessment",
+								"Questionnaire"
+							]
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/assessment/{subject}/{gradeClass}": {
+			"get": {
+				"operationId": "GetQuestions",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {
+											"items": {},
+											"type": "array"
+										},
+										"message": {
+											"type": "string"
+										},
+										"status": {
+											"type": "boolean"
+										},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"status",
+										"statusCode"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "subject",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "gradeClass",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/assessment": {
+			"post": {
+				"operationId": "CreateAssessment",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"properties": {
+												"data": {},
+												"message": {
+													"type": "string"
+												},
+												"status": {
+													"type": "boolean"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"message",
+												"status",
+												"statusCode"
+											],
+											"type": "object"
+										},
+										{
+											"properties": {
+												"data": {},
+												"message": {
+													"type": "string"
+												},
+												"statusCode": {
+													"type": "number",
+													"format": "double"
+												},
+												"status": {
+													"type": "boolean"
+												}
+											},
+											"required": [
+												"data",
+												"message",
+												"statusCode",
+												"status"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"items": {
+									"$ref": "#/components/schemas/CreateQuestionDto"
+								},
+								"type": "array"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/assessment/get-score": {
+			"post": {
+				"operationId": "GetScore",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"data": {},
+										"message": {
+											"type": "string"
+										},
+										"status": {
+											"type": "boolean"
+										},
+										"statusCode": {
+											"type": "number",
+											"format": "double"
+										}
+									},
+									"required": [
+										"data",
+										"message",
+										"status",
+										"statusCode"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Assessment"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"items": {
+									"$ref": "#/components/schemas/AnswerQuestionDto"
+								},
+								"type": "array"
+							}
 						}
 					}
 				}
@@ -72,11 +1050,11 @@
 	},
 	"servers": [
 		{
-			"url": "https://dev-api.learnexo.com",
+			"url": "https://dev-api.learnexo.ng",
 			"description": "API Gateway development"
 		},
 		{
-			"url": "http://localhost:8000",
+			"url": "http://localhost:7070",
 			"description": "API Gateway local"
 		}
 	],

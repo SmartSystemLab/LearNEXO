@@ -1,5 +1,5 @@
 # LearNEXO
-# 📚 LearNexo - an Edtack App that infuses AI into learning
+# 📚 LearNexo - an Edtech App that infuses AI into learning
 
 This project is a TypeScript-based EdTech application
 
@@ -19,7 +19,7 @@ npm install
 Create a `.env` file in the root:
 
 ```env
-PORT=7090
+PORT=7070
 MONGO_URI=your_db_uri
 ```
 
