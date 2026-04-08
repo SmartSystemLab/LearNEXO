@@ -216,20 +216,15 @@ export default class AuthController {
     }
   }
 
-  @Post("/onboarding")
   public async onboarding(
-    @Request() req: any,
-    @UploadedFile() file: any,
+    onboardingDto: any,
+    userId: string,
+    file?: Express.Multer.File,
   ) {
     try {
-      const body = req.body;
-
-      const pastExam = JSON.parse(body.pastExam);
-
       const data = {
-        ...body,
-        pastExam,
-        photo: file?.path, // or cloud URL
+        ...onboardingDto,
+        photo: file?.path,
         user: userId,
       };
 
