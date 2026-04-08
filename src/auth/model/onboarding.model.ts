@@ -6,7 +6,7 @@ const schema = new Schema(
     {
         user: { type: Schema.Types.ObjectId, ref: "Auth", required: true },
         dateOfBirth: { type: Date, default: null },
-        class: { type: String, default: null },
+        studentClass: { type: String, default: null },
         gender: { type: String, default: null },
         stateOfOrigin: { type: String, default: null },
         residentialAddress: { type: String, default: null },

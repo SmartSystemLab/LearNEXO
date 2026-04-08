@@ -1,4 +1,4 @@
-import { Get, Body, Path, Post, Request, UploadedFile, Query, Route, Tags, Inject, Security } from 'tsoa';
+import { Get, Body, FormField, Path, Post, Request, UploadedFile, Query, Route, Tags, Inject, Security } from 'tsoa';
 import * as bcrypt from 'bcryptjs';
 import { SignUpDto, LoginDto, VerifyDto, OnboardingDto } from './types/dto.types';
 import Auth from './model/auth.model';
@@ -11,13 +11,19 @@ import nodemailer from "nodemailer";
 
 // const upload = multer({ dest: "uploads/" });
 
-    
+type ApiResponse = {
+  status: boolean;
+  statusCode: number;
+  message: string;
+  data: any;
+};    
+
+
 @Tags("Auth")
 @Route("api/v1/auth")
 export default class AuthController {
   @Post("/sign-up")
   public async signUp(@Body() signUpDto: SignUpDto) {
-      console.log("Sorosoke")
     try {
       const existingUser = await Auth.findOne({ email: signUpDto.email });
       if (existingUser) {
@@ -217,35 +223,57 @@ export default class AuthController {
     }
   }
 
-  public async onboarding(
-    onboardingDto: any,
-    userId: string,
-    file?: Express.Multer.File,
-  ) {
-    try {
-      const data = {
-        ...onboardingDto,
-        photo: file?.path,
-        user: userId,
-      };
+  @Post("/onboarding")
+public async onboarding(
+  @UploadedFile() photo: Express.Multer.File,
 
-      await Onboarding.create(data);
+  @FormField() dateOfBirth: string,
+  @FormField() studentClass: string,
+  @FormField() gender: string,
+  @FormField() town: string,
+  @FormField() state: string,
+  @FormField() schoolName: string,
+  @FormField() schoolAddress: string,
+  @FormField() learningStyle: string,
+  @FormField() pastExam: string,
+  @FormField() language: string,
+  @FormField() residentialAddress: string,
+  @FormField() stateOfOrigin: string
+): Promise<ApiResponse>  {
+  try {
+    const data = {
+      dateOfBirth: new Date(dateOfBirth),
+      studentClass,
+      gender,
+      town,
+      state,
+      schoolName,
+      schoolAddress,
+      learningStyle,
+      pastExam: JSON.parse(pastExam),
+      language,
+      residentialAddress,
+      stateOfOrigin,
+      photo: photo?.path,
+    };
 
-      return {
-        status: true,
-        statusCode: 200,
-        message: "Onboarding completed successfully",
-        data: null,
-      };
-    } catch (error: any) {
-      return {
-        status: false,
-        statusCode: 500,
-        message: error.message || "Internal Server Error",
-        data: null,
-      };
-    }
+    await Onboarding.create(data);
+
+    return {
+      status: true,
+      statusCode: 200,
+      message: "Onboarding completed successfully",
+      data: null,
+    };
+  } catch (error: any) {
+    return {
+      status: false,
+      statusCode: 500,
+      message: error.message || "Internal Server Error",
+      data: null,
+    };
   }
+}
 
   private async iSendOtp(email: string): Promise<boolean> {
     try {

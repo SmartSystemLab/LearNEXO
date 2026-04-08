@@ -70,15 +70,16 @@ authRoute.post(
       res.status(400).json({
         status: false,
         message: "Photo is required",
-      });
+});
+        return;
     }
 
-    const authService = new AuthController();
+    // const authService = new AuthController();
 
-    const data = await authService.onboarding(req.body, req.user.id, req.file);
+    // const data = await authService.onboarding(req.body, req.user.id, req.file);
 
-    const { statusCode, ...responseData } = data;
-    res.status(statusCode).send(responseData);
+    // const { statusCode, ...responseData } = data;
+    // res.status(statusCode).send(responseData);
   },
 );
 
