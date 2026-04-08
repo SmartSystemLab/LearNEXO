@@ -228,6 +228,13 @@ private async iSendOtp(email: string): Promise<boolean> {
   try {
     // Generate random 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const mailOptions = {
+          from: "oliverpraise1@gmail.com",
+          to: "praiseolukiran@gmal.com",
+          subject: "Verify Your Email",
+          html: `<p> Enter ${otp} on LearNEXO website to verify your email address </p>`
+      }
+      
  const transporter = nodemailer.createTransport({
    service: "Gmail",
    auth: {
@@ -235,14 +242,14 @@ private async iSendOtp(email: string): Promise<boolean> {
      pass: "Tran#for.7",
    },
  });
+      
+      await transporter
+        .verify()
+        .then(() => console.log("Mailer ready"))
+        .catch((err) => console.error("Mailer error:", err));
+
 
       
-      const mailOptions = {
-          from: "oliverpraise1@gmail.com",
-          to: email,
-          subject: "Verify Your Email",
-          html: `<p> Enter ${otp} on LearNEXO website to verify your email address </p>`
-      }
 
     // Hash OTP before saving (security)
     const hashedOtp = crypto
