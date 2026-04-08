@@ -42,9 +42,6 @@
 					"role": {
 						"$ref": "#/components/schemas/EUserRole"
 					},
-					"userImage": {
-						"type": "string"
-					},
 					"password": {
 						"type": "string"
 					},
@@ -60,7 +57,6 @@
 				},
 				"required": [
 					"role",
-					"userImage",
 					"password",
 					"email",
 					"lastName",
@@ -95,85 +91,6 @@
 				"required": [
 					"otp",
 					"email"
-				],
-				"type": "object"
-			},
-			"PastExamDto": {
-				"properties": {
-					"thirdTerm": {
-						"type": "string"
-					},
-					"secondTerm": {
-						"type": "string"
-					},
-					"firstTerm": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"thirdTerm",
-					"secondTerm",
-					"firstTerm"
-				],
-				"type": "object"
-			},
-			"OnboardingDto": {
-				"properties": {
-					"stateOfOrigin": {
-						"type": "string"
-					},
-					"residentialAddress": {
-						"type": "string"
-					},
-					"language": {
-						"type": "string"
-					},
-					"photo": {
-						"type": "string"
-					},
-					"pastExam": {
-						"$ref": "#/components/schemas/PastExamDto"
-					},
-					"learningStyle": {
-						"type": "string"
-					},
-					"schoolAddress": {
-						"type": "string"
-					},
-					"schoolName": {
-						"type": "string"
-					},
-					"state": {
-						"type": "string"
-					},
-					"town": {
-						"type": "string"
-					},
-					"gender": {
-						"type": "string"
-					},
-					"class": {
-						"type": "string"
-					},
-					"dateOfBirth": {
-						"type": "string",
-						"format": "date-time"
-					}
-				},
-				"required": [
-					"stateOfOrigin",
-					"residentialAddress",
-					"language",
-					"photo",
-					"pastExam",
-					"learningStyle",
-					"schoolAddress",
-					"schoolName",
-					"state",
-					"town",
-					"gender",
-					"class",
-					"dateOfBirth"
 				],
 				"type": "object"
 			},
@@ -365,7 +282,7 @@
 				}
 			}
 		},
-		"/api/v1/auth/sign-in": {
+		"/api/v1/auth/sign-up": {
 			"post": {
 				"operationId": "SignUp",
 				"responses": {
@@ -591,9 +508,9 @@
 				]
 			}
 		},
-		"/api/v1/auth/verify": {
+		"/api/v1/auth/verify-otp": {
 			"post": {
-				"operationId": "Verify",
+				"operationId": "VerifyOtp",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -640,9 +557,9 @@
 				}
 			}
 		},
-		"/api/v1/auth/verify-otp": {
+		"/api/v1/auth/verify-forgot-password-otp": {
 			"post": {
-				"operationId": "VerifyOtp",
+				"operationId": "Verify",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -738,7 +655,7 @@
 				}
 			}
 		},
-		"/api/v1/auth/onboarding/{userId}": {
+		"/api/v1/auth/onboarding": {
 			"post": {
 				"operationId": "Onboarding",
 				"responses": {
@@ -774,22 +691,22 @@
 					"Auth"
 				],
 				"security": [],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "userId",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
+				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"content": {
-						"application/json": {
+						"multipart/form-data": {
 							"schema": {
-								"$ref": "#/components/schemas/OnboardingDto"
+								"type": "object",
+								"properties": {
+									"file": {
+										"type": "string",
+										"format": "binary"
+									}
+								},
+								"required": [
+									"file"
+								]
 							}
 						}
 					}

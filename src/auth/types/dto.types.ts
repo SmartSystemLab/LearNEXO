@@ -5,7 +5,6 @@ export type SignUpDto = {
     lastName: string;
     email: string;
     password: string;
-    userImage: string;
     role: EUserRole;
 }
 
@@ -35,7 +34,7 @@ export type OnboardingDto = {
   schoolAddress: string;
   learningStyle: string;
   pastExam: PastExamDto;
-  photo: string;
+  photo: File;
   language: string;
   residentialAddress: string;
   stateOfOrigin: string;
