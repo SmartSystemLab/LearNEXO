@@ -60,7 +60,7 @@ authRoute.get('/send-otp/:email',
 });
 
 authRoute.post(
-  "/onboarding",
+  '/onboarding',
   verifyJwt,
   upload.single("photo"),
   parseFormData,

@@ -7,9 +7,9 @@ import Otp from './model/otp.model';
 import jwt from 'jsonwebtoken'
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-import multer from "multer";
+// import multer from "multer";
 
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
 
     
 @Tags("Auth")
@@ -17,6 +17,7 @@ const upload = multer({ dest: "uploads/" });
 export default class AuthController {
   @Post("/sign-up")
   public async signUp(@Body() signUpDto: SignUpDto) {
+      console.log("Sorosoke")
     try {
       const existingUser = await Auth.findOne({ email: signUpDto.email });
       if (existingUser) {
