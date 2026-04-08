@@ -6,7 +6,7 @@ const schema = new Schema(
     {
         email: { type: String, default: null },
         otp: { type: String, default: null },
-        otpExpiresIn: { type: String, default: null },
+        otpExpiresIn: { type: Date, default: null },
     },
     { toJSON: { virtuals: true }, toObject: { virtuals: true }, timestamps: true }
 );

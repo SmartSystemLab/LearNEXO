@@ -6,7 +6,6 @@
     "module": "commonjs",
     "rootDir": "./src",
     "sourceMap": true,
-    "outDir": "dist",
     "esModuleInterop": true,
     "strict": true,
     "noImplicitAny": true,

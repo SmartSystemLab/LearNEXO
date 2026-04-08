@@ -5,10 +5,16 @@ import Auth from './model/auth.model';
 import Onboarding from './model/onboarding.model';
 import Otp from './model/otp.model';
 import jwt from 'jsonwebtoken'
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 
+    
 @Tags('Auth')
-@Route('api/v1/auth')
+@Route('api/v1/auth')    
 export default class AuthController {
+
+
+
     @Post('/sign-in')
     public async signUp(@Body() signUpDto: SignUpDto) {
         try {
@@ -98,6 +104,7 @@ export default class AuthController {
             }
         }
     }
+
 
     @Get("/send-otp/{email}")
     public async sendOtp(@Path() email: string) {
@@ -215,34 +222,60 @@ export default class AuthController {
     }
 
 
-    private async iSendOtp(email: string) {
-        try {
-            const otp = "000000"
-            const otpExpiresIn = Date.now() + (1000 * 60 * 10)
-            const otpUser = await Otp.findOne({
-                email
-            })
-            if (otpUser) {
-                await Otp.updateOne({
-                    email
-                },
-                    {
-                        otp,
-                        otpExpiresIn
-                    })
-            } else {
-                await Otp.create({
-                    email,
-                    otp,
-                    otpExpiresIn
-                })
-            }
-            return true;
 
-        } catch (error) {
-            return false;
-        }
-    }
+
+private async iSendOtp(email: string): Promise<boolean> {
+  try {
+    // Generate random 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+ const transporter = nodemailer.createTransport({
+   service: "Gmail",
+   auth: {
+     user: "oliverpraise@gmail.com",
+     pass: "Tran#for.7",
+   },
+ });
+
+      
+      const mailOptions = {
+          from: "oliverpraise1@gmail.com",
+          to: email,
+          subject: "Verify Your Email",
+          html: `<p> Enter ${otp} on LearNEXO website to verify your email address </p>`
+      }
+
+    // Hash OTP before saving (security)
+    const hashedOtp = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+    const otpExpiresIn = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    // Upsert (update or create in ONE call)
+    await Otp.findOneAndUpdate(
+      { email,
+        otp: hashedOtp,
+        otpExpiresIn,
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+
+     await transporter.sendMail(mailOptions)
+      
+    // TODO: send OTP via email service here
+    console.log(`OTP for ${email}: ${otp}`);
+
+    return true;
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    return false;
+  }
+}
 
     private async iVerify(verifyDto: VerifyDto) {
         try {
