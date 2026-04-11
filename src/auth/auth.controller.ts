@@ -7,9 +7,8 @@ import Otp from './model/otp.model';
 import jwt from 'jsonwebtoken'
 import crypto from "crypto";
 import nodemailer from "nodemailer";
-// import multer from "multer";
+import dotenv from "dotenv";
 
-// const upload = multer({ dest: "uploads/" });
 
 type ApiResponse = {
   status: boolean;
@@ -18,7 +17,7 @@ type ApiResponse = {
   data: any;
 };    
 
-
+dotenv.config();
 @Tags("Auth")
 @Route("api/v1/auth")
 export default class AuthController {
@@ -125,6 +124,7 @@ export default class AuthController {
 
   @Get("/send-otp/{email}")
   public async sendOtp(@Path() email: string) {
+    // return (process.env.AUTH_EMAIL,process.env.AUTH_APP_PASSWORD );
     const value = await this.iSendOtp(email);
     if (value) {
       return {
@@ -224,100 +224,93 @@ export default class AuthController {
   }
 
   @Post("/onboarding")
-public async onboarding(
-  @UploadedFile() photo: Express.Multer.File,
+  public async onboarding(
+    @UploadedFile() photo: Express.Multer.File,
 
-  @FormField() dateOfBirth: string,
-  @FormField() studentClass: string,
-  @FormField() gender: string,
-  @FormField() town: string,
-  @FormField() state: string,
-  @FormField() schoolName: string,
-  @FormField() schoolAddress: string,
-  @FormField() learningStyle: string,
-  @FormField() pastExam: string,
-  @FormField() language: string,
-  @FormField() residentialAddress: string,
-  @FormField() stateOfOrigin: string
-): Promise<ApiResponse>  {
-  try {
-    const data = {
-      dateOfBirth: new Date(dateOfBirth),
-      studentClass,
-      gender,
-      town,
-      state,
-      schoolName,
-      schoolAddress,
-      learningStyle,
-      pastExam: JSON.parse(pastExam),
-      language,
-      residentialAddress,
-      stateOfOrigin,
-      photo: photo?.path,
-    };
+    @FormField() dateOfBirth: string,
+    @FormField() studentClass: string,
+    @FormField() gender: string,
+    @FormField() town: string,
+    @FormField() state: string,
+    @FormField() schoolName: string,
+    @FormField() schoolAddress: string,
+    @FormField() learningStyle: string,
+    @FormField() pastExam: string,
+    @FormField() language: string,
+    @FormField() residentialAddress: string,
+    @FormField() stateOfOrigin: string,
+  ): Promise<ApiResponse> {
+    try {
+      const data = {
+        dateOfBirth: new Date(dateOfBirth),
+        studentClass,
+        gender,
+        town,
+        state,
+        schoolName,
+        schoolAddress,
+        learningStyle,
+        pastExam: JSON.parse(pastExam),
+        language,
+        residentialAddress,
+        stateOfOrigin,
+        photo: photo?.path,
+      };
 
-    await Onboarding.create(data);
+      await Onboarding.create(data);
 
-    return {
-      status: true,
-      statusCode: 200,
-      message: "Onboarding completed successfully",
-      data: null,
-    };
-  } catch (error: any) {
-    return {
-      status: false,
-      statusCode: 500,
-      message: error.message || "Internal Server Error",
-      data: null,
-    };
+      return {
+        status: true,
+        statusCode: 200,
+        message: "Onboarding completed successfully",
+        data: null,
+      };
+    } catch (error: any) {
+      return {
+        status: false,
+        statusCode: 500,
+        message: error.message || "Internal Server Error",
+        data: null,
+      };
+    }
   }
-}
 
   private async iSendOtp(email: string): Promise<boolean> {
     try {
-      // Generate random 6-digit OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const mailOptions = {
-        from: "oliverpraise1@gmail.com",
-        to: "praiseolukiran@gmal.com",
-        subject: "Verify Your Email",
-        html: `<p> Enter ${otp} on LearNEXO website to verify your email address </p>`,
-      };
 
       const transporter = nodemailer.createTransport({
-        service: "Gmail",
+        service: "gmail", 
         auth: {
-          user: "oliverpraise@gmail.com",
-          pass: "Tran#for.7",
+          user: process.env.AUTH_EMAIL, 
+          pass: process.env.AUTH_APP_PASSWORD,
         },
       });
 
-      await transporter
-        .verify()
-        .then(() => console.log("Mailer ready"))
-        .catch((err) => console.error("Mailer error:", err));
+      const mailOptions = {
+        from: `"LearNEXO Support" <${process.env.AUTH_EMAIL}>`,
+        to: email,
+        subject: "Verify Your Email",
+        html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Email Verification</h2>
+          <p>Enter the code below on LearNEXO to verify your email:</p>
+          <h1 style="color: #4A90E2; letter-spacing: 5px;">${otp}</h1>
+          <p>This code expires in 10 minutes.</p>
+        </div>
+      `,
+      };
 
-      // Hash OTP before saving (security)
       const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+      const otpExpiresIn = new Date(Date.now() + 10 * 60 * 1000);
 
-      const otpExpiresIn = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
-      // Upsert (update or create in ONE call)
       await Otp.findOneAndUpdate(
-        { email, otp: hashedOtp, otpExpiresIn },
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true,
-        },
+        { email },
+        { otp: hashedOtp, otpExpiresIn },
+        { upsert: true, new: true },
       );
-
       await transporter.sendMail(mailOptions);
-
-      // TODO: send OTP via email service here
-      console.log(`OTP for ${email}: ${otp}`);
+      console.log(`OTP sent to ${email}`);
 
       return true;
     } catch (error) {
