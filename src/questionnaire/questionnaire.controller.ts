@@ -2,6 +2,7 @@ import { Request, Response, RequestHandler } from "express";
 import Question from "./model/question.model";
 import Auth from "../auth/model/auth.model";
 import Onboarding from "../auth/model/onboarding.model";
+import mongoose from "mongoose"
 
 export const bulkUploadQuestions: RequestHandler = async (req, res) => {
   try {
@@ -110,12 +111,19 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
     const { userId, answers } = req.body;
 
     if (!userId || !answers || !Array.isArray(answers)) {
-      res.status(400).json({
-        message: "Invalid payload",
-      });
+       res.status(400).json({ message: "Invalid payload" });
     }
 
-    const user = await Auth.findOne({ userId });
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+       res.status(400).json({ message: "Invalid userId format" });
+    }
+
+    /*custom id*/
+    // const user = await Auth.findOne({ userId });
+
+    const user = await Auth.findById(userId);
+    // OR
+    // const user = await Auth.findOne({ _id: new mongoose.Types.ObjectId(userId) });
 
     if (!user) {
       res.status(404).json({
@@ -123,8 +131,7 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
       });
     }
 
-    const onboarding = await Onboarding.findOne({ userId });
-
+    const onboarding = await Onboarding.findOne({ user: user._id });
     const questionNumbers = answers.map((a: any) => a.questionNumber);
 
     const questions = await Question.find({
@@ -182,7 +189,6 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
     //   cognitiveScore,
     // });
 
-
     /* AI INSIGHTS */
     const aiPayload = {
       learning_style_scores: learningStyleScores,
@@ -235,21 +241,17 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
     /* UPDATE USER PROFILE */
 
     const userOnboarding = await Onboarding.findOneAndUpdate(
-      { user: user._id }, // correct link
+      { user: user._id },
       {
-        user: user._id, // ensure it's set on create
+        user: user._id,
         learningProfile,
       },
-      {
-        new: true,
-        upsert: true,
-      },
+      { new: true, upsert: true },
     );
 
-     res.status(200).json({
+    res.status(200).json({
       userOnboarding,
     });
-
   } catch (error: any) {
     res.status(500).json({
       message: error.message || "Internal Server Error",
