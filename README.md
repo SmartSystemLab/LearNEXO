@@ -66,3 +66,132 @@ Check `package.json` for all available commands:
 ```
 
 **Made with ❤️ by Akintola Felix**  
+
+```
+LearNEXO
+├─ README.md
+├─ dockerfile
+├─ eslint.config.mjs
+├─ nodemon.json
+├─ package-lock.json
+├─ package.json
+├─ pnpm-lock.yaml
+├─ public
+│  └─ swagger.json
+├─ src
+│  ├─ assessment
+│  │  ├─ assessment.controller.ts
+│  │  ├─ model
+│  │  │  └─ questions.model.ts
+│  │  └─ types
+│  │     ├─ dto.types.ts
+│  │     └─ validation.schema.ts
+│  ├─ auth
+│  │  ├─ auth.controller.ts
+│  │  ├─ model
+│  │  │  ├─ auth.model.ts
+│  │  │  ├─ onboarding.model.ts
+│  │  │  ├─ otp.model.ts
+│  │  │  └─ status.model.ts
+│  │  ├─ types
+│  │  │  ├─ dto.types.ts
+│  │  │  ├─ enums.type.ts
+│  │  │  ├─ index.ts
+│  │  │  └─ validation.schema.type.ts
+│  │  └─ util
+│  │     ├─ helpers.util.ts
+│  │     └─ jwt.util.ts
+│  ├─ connections
+│  │  └─ database.connection.ts
+│  ├─ global
+│  │  ├─ interface
+│  │  │  ├─ error.interface.ts
+│  │  │  └─ response.interface.ts
+│  │  └─ types
+│  │     └─ index.ts
+│  ├─ index.ts
+│  ├─ learning-style
+│  │  ├─ learning-style.controller.ts
+│  │  ├─ model
+│  │  │  ├─ question.model.ts
+│  │  │  ├─ response.model.ts
+│  │  │  └─ result.model.ts
+│  │  └─ types
+│  ├─ middleware
+│  │  ├─ errorHandler.ts
+│  │  ├─ helper.ts
+│  │  ├─ logging.ts
+│  │  ├─ parseFormData.ts
+│  │  ├─ validation.ts
+│  │  └─ verifyJwt.ts
+│  └─ upload
+│     └─ upload.controller.ts
+├─ tsconfig.json
+├─ tsoa.json
+└─ uploads
+
+```
+
+```
+LearNEXO
+├─ README.md
+├─ dockerfile
+├─ eslint.config.mjs
+├─ nodemon.json
+├─ package-lock.json
+├─ package.json
+├─ pnpm-lock.yaml
+├─ public
+│  └─ swagger.json
+├─ src
+│  ├─ app.ts
+│  ├─ auth
+│  │  ├─ auth.controller.ts
+│  │  ├─ auth.service.ts
+│  │  ├─ model
+│  │  │  ├─ auth.model.ts
+│  │  │  ├─ onboarding.model.ts
+│  │  │  ├─ otp.model.ts
+│  │  │  └─ status.model.ts
+│  │  ├─ types
+│  │  │  ├─ dto.types.ts
+│  │  │  ├─ enums.type.ts
+│  │  │  ├─ index.ts
+│  │  │  └─ validation.schema.type.ts
+│  │  └─ util
+│  │     ├─ helpers.util.ts
+│  │     └─ jwt.util.ts
+│  ├─ common
+│  │  └─ dto
+│  │     └─ api-response.ts
+│  ├─ config
+│  │  └─ authentication.ts
+│  ├─ connections
+│  │  └─ database.connection.ts
+│  ├─ docs
+│  │  └─ swagger.ts
+│  ├─ global
+│  │  ├─ interface
+│  │  │  ├─ error.interface.ts
+│  │  │  └─ response.interface.ts
+│  │  └─ types
+│  │     └─ index.ts
+│  ├─ middleware
+│  │  ├─ errorHandler.ts
+│  │  ├─ helper.ts
+│  │  ├─ logging.ts
+│  │  ├─ parseFormData.ts
+│  │  ├─ validation.ts
+│  │  └─ verifyJwt.ts
+│  └─ questionnaire
+│     ├─ model
+│     │  ├─ question.model.ts
+│     │  ├─ response.model.ts
+│     │  └─ result.model.ts
+│     ├─ questionnaire.controller.ts
+│     └─ types
+│        └─ dto.types.ts
+├─ tsconfig.json
+└─ tsoa.json
+
+```

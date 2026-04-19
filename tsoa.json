@@ -2,6 +2,7 @@
   "entryFile": "src/index.ts",
   "controllerPathGlobs": ["src/**/*controller.ts"],
   "noImplicitAdditionalProperties": "throw-on-extras",
+
   "spec": {
     "outputDirectory": "./public",
     "specVersion": 3,
@@ -17,6 +18,10 @@
         {
           "name": "Auth",
           "description": "Authentication and Authorization Endpoints"
+        },
+        {
+          "name": "Questionnaire",
+          "description": "Questionnaire Endpoints"
         }
       ],
       "servers": [
@@ -28,11 +33,12 @@
           "url": "http://localhost:7070",
           "description": "API Gateway local"
         }
-      ],
-    "multipart": true
-     }
+      ]
+    }
   },
+
   "routes": {
+    "routesDir": "src/routes",
     "authenticationModule": "./src/config/authentication.ts"
   }
 }

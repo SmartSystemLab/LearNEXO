@@ -1,13 +1,15 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, } from "express";
 import jwt from "jsonwebtoken";
+
 
 export interface AuthenticatedRequest<
   P = Record<string, any>,
   ResBody = any,
   ReqBody = any,
-  ReqQuery = Record<string, any>
+  ReqQuery = Record<string, any>,
 > extends Request<P, ResBody, ReqBody, ReqQuery> {
   user?: any;
+  file?: Express.Multer.File;
 }
 
 export const verifyJwt = (

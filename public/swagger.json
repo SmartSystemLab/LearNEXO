@@ -7,22 +7,25 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
-			"ErrorInterface": {
+			"ApiResponse": {
 				"properties": {
-					"message": {
-						"type": "string"
-					},
 					"status": {
 						"type": "boolean"
 					},
-					"data": {},
-					"stack": {
+					"statusCode": {
+						"type": "number",
+						"format": "double"
+					},
+					"message": {
 						"type": "string"
-					}
+					},
+					"data": {}
 				},
 				"required": [
+					"status",
+					"statusCode",
 					"message",
-					"status"
+					"data"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -93,115 +96,6 @@
 					"email"
 				],
 				"type": "object"
-			},
-			"ApiResponse": {
-				"properties": {
-					"data": {},
-					"message": {
-						"type": "string"
-					},
-					"statusCode": {
-						"type": "number",
-						"format": "double"
-					},
-					"status": {
-						"type": "boolean"
-					}
-				},
-				"required": [
-					"data",
-					"message",
-					"statusCode",
-					"status"
-				],
-				"type": "object"
-			},
-			"QuestionOptionsDto": {
-				"properties": {
-					"e": {
-						"type": "string"
-					},
-					"d": {
-						"type": "string"
-					},
-					"c": {
-						"type": "string"
-					},
-					"b": {
-						"type": "string"
-					},
-					"a": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"e",
-					"d",
-					"c",
-					"b",
-					"a"
-				],
-				"type": "object"
-			},
-			"CreateQuestionDto": {
-				"properties": {
-					"category": {
-						"type": "string",
-						"enum": [
-							"Assessment",
-							"Questionnaire"
-						]
-					},
-					"answer": {
-						"type": "string",
-						"enum": [
-							"a",
-							"b",
-							"c",
-							"d",
-							"e"
-						]
-					},
-					"options": {
-						"$ref": "#/components/schemas/QuestionOptionsDto"
-					},
-					"question": {
-						"type": "string"
-					},
-					"questionNumber": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"category",
-					"answer",
-					"options",
-					"question",
-					"questionNumber"
-				],
-				"type": "object"
-			},
-			"AnswerQuestionDto": {
-				"properties": {
-					"answer": {
-						"type": "string",
-						"enum": [
-							"a",
-							"b",
-							"c",
-							"d",
-							"e"
-						]
-					},
-					"questionId": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"answer",
-					"questionId"
-				],
-				"type": "object"
 			}
 		},
 		"securitySchemes": {
@@ -224,84 +118,127 @@
 		}
 	},
 	"paths": {
-		"/api/v1/upload": {
+		"/api/v1/questionnaire/bulk-upload": {
 			"post": {
-				"operationId": "Upload",
+				"operationId": "BulkUploadQuestions",
 				"responses": {
 					"200": {
-						"description": "File uploaded successfully",
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"properties": {
-										"data": {},
-										"message": {
-											"type": "string"
-										},
-										"status": {
-											"type": "boolean"
-										},
-										"statusCode": {
-											"type": "number",
-											"format": "double"
-										}
-									},
-									"required": [
-										"data",
-										"message",
-										"status",
-										"statusCode"
-									],
-									"type": "object"
-								}
-							}
-						}
-					},
-					"400": {
-						"description": "Bad Request",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorInterface"
-								}
-							}
-						}
-					},
-					"500": {
-						"description": "Internal Server Error",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ErrorInterface"
+									"$ref": "#/components/schemas/ApiResponse"
 								}
 							}
 						}
 					}
 				},
 				"tags": [
-					"Upload"
+					"Questionnaire"
 				],
 				"security": [],
 				"parameters": [],
 				"requestBody": {
 					"required": true,
 					"content": {
-						"multipart/form-data": {
+						"application/json": {
 							"schema": {
-								"type": "object",
-								"properties": {
-									"file": {
-										"type": "string",
-										"format": "binary"
-									}
-								},
-								"required": [
-									"file"
-								]
+								"items": {},
+								"type": "array"
 							}
 						}
 					}
 				}
+			}
+		},
+		"/api/v1/questionnaire": {
+			"get": {
+				"operationId": "GetAllQuestions",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Questionnaire"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/api/v1/questionnaire/{id}": {
+			"put": {
+				"operationId": "UpdateQuestion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Questionnaire"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteQuestion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Questionnaire"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		},
 		"/api/v1/auth/sign-up": {
@@ -765,257 +702,6 @@
 					}
 				}
 			}
-		},
-		"/api/v1/assessment/{category}": {
-			"get": {
-				"operationId": "GetAssessment",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"properties": {
-										"data": {
-											"items": {},
-											"type": "array"
-										},
-										"message": {
-											"type": "string"
-										},
-										"status": {
-											"type": "boolean"
-										},
-										"statusCode": {
-											"type": "number",
-											"format": "double"
-										}
-									},
-									"required": [
-										"data",
-										"message",
-										"status",
-										"statusCode"
-									],
-									"type": "object"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Assessment"
-				],
-				"security": [],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "category",
-						"required": true,
-						"schema": {
-							"type": "string",
-							"enum": [
-								"Assessment",
-								"Questionnaire"
-							]
-						}
-					}
-				]
-			}
-		},
-		"/api/v1/assessment/{subject}/{gradeClass}": {
-			"get": {
-				"operationId": "GetQuestions",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"properties": {
-										"data": {
-											"items": {},
-											"type": "array"
-										},
-										"message": {
-											"type": "string"
-										},
-										"status": {
-											"type": "boolean"
-										},
-										"statusCode": {
-											"type": "number",
-											"format": "double"
-										}
-									},
-									"required": [
-										"data",
-										"message",
-										"status",
-										"statusCode"
-									],
-									"type": "object"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Assessment"
-				],
-				"security": [],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "subject",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "path",
-						"name": "gradeClass",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/api/v1/assessment": {
-			"post": {
-				"operationId": "CreateAssessment",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"anyOf": [
-										{
-											"properties": {
-												"data": {},
-												"message": {
-													"type": "string"
-												},
-												"status": {
-													"type": "boolean"
-												},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												}
-											},
-											"required": [
-												"message",
-												"status",
-												"statusCode"
-											],
-											"type": "object"
-										},
-										{
-											"properties": {
-												"data": {},
-												"message": {
-													"type": "string"
-												},
-												"statusCode": {
-													"type": "number",
-													"format": "double"
-												},
-												"status": {
-													"type": "boolean"
-												}
-											},
-											"required": [
-												"data",
-												"message",
-												"statusCode",
-												"status"
-											],
-											"type": "object"
-										}
-									]
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Assessment"
-				],
-				"security": [],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"items": {
-									"$ref": "#/components/schemas/CreateQuestionDto"
-								},
-								"type": "array"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/api/v1/assessment/get-score": {
-			"post": {
-				"operationId": "GetScore",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"properties": {
-										"data": {},
-										"message": {
-											"type": "string"
-										},
-										"status": {
-											"type": "boolean"
-										},
-										"statusCode": {
-											"type": "number",
-											"format": "double"
-										}
-									},
-									"required": [
-										"data",
-										"message",
-										"status",
-										"statusCode"
-									],
-									"type": "object"
-								}
-							}
-						}
-					}
-				},
-				"tags": [
-					"Assessment"
-				],
-				"security": [],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"items": {
-									"$ref": "#/components/schemas/AnswerQuestionDto"
-								},
-								"type": "array"
-							}
-						}
-					}
-				}
-			}
 		}
 	},
 	"servers": [
@@ -1032,7 +718,10 @@
 		{
 			"name": "Auth",
 			"description": "Authentication and Authorization Endpoints"
+		},
+		{
+			"name": "Questionnaire",
+			"description": "Questionnaire Endpoints"
 		}
-	],
-	"multipart": true
+	]
 }

@@ -5,12 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "predev": "npm run swagger",
-    "prebuild": "npm run swagger",
     "build": "tsc --build",
-    "start": "node ./dist/index.js",
+    "start": "node ./dist/app.js",
     "start:dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec\"",
-    "swagger": "tsoa spec",
+    "swagger": "tsoa routes && tsoa spec",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
   },
   "dependencies": {
@@ -37,8 +35,8 @@
     "multer": "^2.1.1",
     "nodemailer": "^8.0.4",
     "streamifier": "^0.1.1",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "tsoa": "^6.6.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
@@ -46,9 +44,11 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/http-errors": "^2.0.4",
+    "@types/multer": "^2.1.0",
     "@types/node": "^22.14.1",
     "@types/nodemailer": "^8.0.0",
     "@types/supertest": "^6.0.3",
+    "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.10",

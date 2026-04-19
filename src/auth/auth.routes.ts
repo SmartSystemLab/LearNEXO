@@ -1,86 +1,213 @@
-import express, { Request, Response } from 'express';
-import AuthController from './auth.controller';
-import { createUserValidation, loginUserValidation, onboardingValidation, verifyValidation } from './types/validation.schema.type';
-import { validateRequest } from '../middleware/validation';
-import { LoginDto, OnboardingDto, SignUpDto, VerifyDto } from './types/dto.types';
-import { AuthenticatedRequest, verifyJwt } from '../middleware/verifyJwt';
+import express from "express";
 import multer from "multer";
-import { parseFormData } from "../middleware/parseFormData"
+
+import {
+  createUserValidation,
+  loginUserValidation,
+  onboardingValidation,
+  verifyValidation,
+} from "./types/validation.schema.type";
+
+import { validateRequest } from "../middleware/validation";
+import { verifyJwt } from "../middleware/verifyJwt";
+import { parseFormData } from "../middleware/parseFormData";
+
+import {
+  signUp,
+  login,
+  verifyOtp,
+  sendOtp,
+  resetPassword,
+  onboarding,
+} from "./auth.controller";
 
 const upload = multer({ dest: "uploads/" });
 const authRoute = express.Router();
 
+/**
+ * @openapi
+ * /auth/sign-up:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Register a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ */
+authRoute.post("/sign-up", validateRequest(createUserValidation), signUp);
 
-authRoute.post('/sign-up', validateRequest(createUserValidation),
- async (req: Request<{}, {}, SignUpDto>, res: Response<any>): Promise<any> => {
-    const authService = new AuthController();
-    const data = await authService.signUp(req.body)
-    const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Login user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ */
+authRoute.post("/login", validateRequest(loginUserValidation), login);
 
-authRoute.post('/login', validateRequest(loginUserValidation),
- async (req: Request<{}, {}, LoginDto>, res: Response<any>): Promise<any> => {
-    const authService = new AuthController();
-    const data = await authService.login(req.body)
-    const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
+/**
+ * @openapi
+ * /auth/verify-otp:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Verify OTP
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP verified
+ */
+authRoute.post("/verify-otp", validateRequest(verifyValidation), verifyOtp);
 
-authRoute.post('/verify-otp', validateRequest(verifyValidation),
- async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
-    const authService = new AuthController();
-    const data = await authService.verifyOtp(req.body)
-    const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-    });
-
-authRoute.post('/verify-forgot-password-otp', validateRequest(verifyValidation),
- async (req: Request<{}, {}, VerifyDto>, res: Response<any>): Promise<any> => {
-    const authService = new AuthController();
-    const data = await authService.verify(req.body)
-    const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
-
-authRoute.post('/reset-password', validateRequest(loginUserValidation),
- async (req: Request<{}, {}, LoginDto>, res: Response<any>): Promise<any> => {
-    const authService = new AuthController();
-    const data = await authService.resetPassword(req.body)
-    const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
-
-authRoute.get('/send-otp/:email',
- async (req: Request<{email: string}, {}>, res: Response<any>): Promise<any> => {
-    const authService = new AuthController();
-    const data = await authService.sendOtp(req.params.email)
-    const { statusCode, ...responseData } = data;
-    return res.status(statusCode).send({ ...responseData });
-});
-
+/**
+ * @openapi
+ * /auth/reset-password:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Reset password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ */
 authRoute.post(
-  '/onboarding',
+  "/reset-password",
+  validateRequest(loginUserValidation),
+  resetPassword,
+);
+
+/**
+ * @openapi
+ * /auth/send-otp/{email}:
+ *   get:
+ *     tags:
+ *       - Auth
+ *     summary: Send OTP to email
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ */
+authRoute.get("/send-otp/:email", sendOtp);
+
+/**
+ * @openapi
+ * /auth/onboarding:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Complete user onboarding
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - dateOfBirth
+ *               - studentClass
+ *               - gender
+ *               - town
+ *               - state
+ *               - schoolName
+ *               - learningStyle
+ *             properties:
+ *               dateOfBirth:
+ *                 type: string
+ *               studentClass:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *               town:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               schoolName:
+ *                 type: string
+ *               schoolAddress:
+ *                 type: string
+ *               learningStyle:
+ *                 type: string
+ *               pastExam:
+ *                 type: string
+ *               language:
+ *                 type: string
+ *               residentialAddress:
+ *                 type: string
+ *               stateOfOrigin:
+ *                 type: string
+ *               photo:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Onboarding completed successfully
+ */
+authRoute.post(
+  "/onboarding",
   verifyJwt,
   upload.single("photo"),
   parseFormData,
   validateRequest(onboardingValidation),
-  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    if (!req.file) {
-      res.status(400).json({
-        status: false,
-        message: "Photo is required",
-});
-        return;
-    }
-
-    // const authService = new AuthController();
-
-    // const data = await authService.onboarding(req.body, req.user.id, req.file);
-
-    // const { statusCode, ...responseData } = data;
-    // res.status(statusCode).send(responseData);
-  },
+  onboarding,
 );
 
 export default authRoute;
