@@ -23,14 +23,23 @@ import {
 
 const upload = multer({ dest: "uploads/" });
 const authRoute = express.Router();
-
 /**
  * @openapi
  * /auth/sign-up:
  *   post:
  *     tags:
  *       - Auth
- *     summary: Register a new user
+ *     summary: Register a new user account
+ *     description: >
+ *       Creates a new user account with role-based identification.
+ *       The system hashes the user's password, generates a unique userId,
+ *       and sends an OTP to the provided email for verification.
+ *
+ *       Note:
+ *       - Email must be unique.
+ *       - Password is securely hashed before storage.
+ *       - OTP verification is required to activate the account.
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -40,14 +49,93 @@ const authRoute = express.Router();
  *             required:
  *               - email
  *               - password
+ *               - firstName
+ *               - lastName
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: oliverpraise1@gmail.com
+ *
  *               password:
  *                 type: string
+ *                 format: password
+ *                 example: StrongPassword123
+ *
+ *               firstName:
+ *                 type: string
+ *                 example: Praise
+ *
+ *               lastName:
+ *                 type: string
+ *                 example: Olive
+ *
+ *               role:
+ *                 type: string
+ *                 enum: [student, parent, teacher, admin, super_admin]
+ *                 default: student
+ *                 example: student
+ *
  *     responses:
  *       201:
- *         description: User created successfully
+ *         description: User created successfully (OTP sent to email)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *
+ *                 statusCode:
+ *                   type: number
+ *                   example: 201
+ *
+ *                 message:
+ *                   type: string
+ *                   example: User created successfully
+ *
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 664ab12cd98ef00123abc456
+ *
+ *                     userId:
+ *                       type: string
+ *                       description: Role-based unique identifier
+ *                       example: STU-839201
+ *
+ *                     email:
+ *                       type: string
+ *                       example: oliverpraise1@gmail.com
+ *
+ *                     firstName:
+ *                       type: string
+ *                       example: Praise
+ *
+ *                     lastName:
+ *                       type: string
+ *                       example: Olive
+ *
+ *                     role:
+ *                       type: string
+ *                       example: student
+ *
+ *       400:
+ *         description: User already exists or invalid input
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: false
+ *               statusCode: 400
+ *               message: User already exists
+ *               data: null
+ *
+ *       500:
+ *         description: Internal server error
  */
 authRoute.post("/sign-up", validateRequest(createUserValidation), signUp);
 

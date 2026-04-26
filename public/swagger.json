@@ -96,7 +96,61 @@
 					"email"
 				],
 				"type": "object"
-			}
+			},
+			"AssessmentQuestion": {
+  "type": "object",
+  "required": [
+    "questionNumber",
+    "subject",
+    "class",
+    "topic",
+    "question",
+    "options",
+    "answer",
+    "difficulty",
+    "category"
+  ],
+  "properties": {
+    "questionNumber": { "type": "string", "example": "G001" },
+    "subject": { "type": "string", "example": "English" },
+    "class": { "type": "string", "example": "JSS2" },
+    "topic": { "type": "string", "example": "grammar" },
+    "question": { "type": "string" },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string", "example": "a" },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "answer": { "type": "string", "example": "b" },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard"]
+    },
+    "category": {
+      "type": "string",
+      "enum": ["grammar", "comprehension", "vocabulary", "oral", "writing"]
+    },
+    "explanation": { "type": "string" }
+  }
+},
+
+"AssessmentResponse": {
+  "type": "object",
+  "properties": {
+    "total": { "type": "number", "example": 20 },
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/AssessmentQuestion"
+      }
+    }
+  }
+}
 		},
 		"securitySchemes": {
 			"BearerAuth": {
@@ -702,7 +756,171 @@
 					}
 				}
 			}
-		}
+		},
+		"/api/v1/assessment/questions/bulk-upload": {
+  "post": {
+    "tags": ["Assessment"],
+    "summary": "Bulk upload assessment questions",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssessmentQuestion"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Questions uploaded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/api/v1/assessment/{subject}/{class}": {
+  "get": {
+    "tags": ["Assessment"],
+    "summary": "Get assessment questions",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "subject",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      {
+        "in": "path",
+        "name": "class",
+        "required": true,
+        "schema": { "type": "string" }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Assessment fetched",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AssessmentResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/api/v1/assessment/{subject}/{class}/topic/{topic}": {
+  "get": {
+    "tags": ["Assessment"],
+    "summary": "Get questions by topic",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "subject",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      {
+        "in": "path",
+        "name": "class",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      {
+        "in": "path",
+        "name": "topic",
+        "required": true,
+        "schema": { "type": "string" }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Topic questions fetched",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AssessmentResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+},"/api/v1/assessment/questions": {
+  "get": {
+    "tags": ["Assessment"],
+    "summary": "Get all assessment questions",
+    "responses": {
+      "200": {
+        "description": "All questions fetched",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/api/v1/assessment/questions/{questionNumber}": {
+  "patch": {
+    "tags": ["Assessment"],
+    "summary": "Update a question",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "questionNumber",
+        "required": true,
+        "schema": { "type": "string" }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/AssessmentQuestion"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated"
+      }
+    }
+  },
+  "delete": {
+    "tags": ["Assessment"],
+    "summary": "Delete a question",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "questionNumber",
+        "required": true,
+        "schema": { "type": "string" }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Deleted"
+      }
+    }
+  }
+}
 	},
 	"servers": [
 		{
@@ -722,6 +940,10 @@
 		{
 			"name": "Questionnaire",
 			"description": "Questionnaire Endpoints"
-		}
+		},
+		{
+  "name": "Assessment",
+  "description": "Assessment and Evaluation Endpoints"
+}
 	]
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "build": "tsc --build",
-    "start": "node ./dist/app.js",
+    "start": " tsc --build && node ./dist/app.js",
     "start:dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec\"",
     "swagger": "tsoa routes && tsoa spec",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""

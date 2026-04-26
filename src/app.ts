@@ -9,10 +9,12 @@ import Logging from "./middleware/logging";
 import { errorResponse, notFound } from "./middleware/errorHandler";
 import { ResponseInterface } from "./global/interface/response.interface";
 
+
 import mongooseConnection from "./connections/database.connection";
 
 import authRoute from "./auth/auth.routes";
 import questionnaireRoute from "./questionnaire/questionnaire.routes";
+import assessmentRoute from "./assessment/assessment.router";
 
 import { swaggerSpec } from "./docs/swagger";
 
@@ -71,6 +73,7 @@ app.get("/", (req: Request, res: Response<ResponseInterface>) => {
  */
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/questionnaire", questionnaireRoute);
+app.use("/api/v1/assessment", assessmentRoute);
 
 /**
  * Error handling (must be last)

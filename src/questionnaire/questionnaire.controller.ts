@@ -1,8 +1,7 @@
-import { Request, Response, RequestHandler } from "express";
+import { RequestHandler } from "express";
 import Question from "./model/question.model";
 import Auth from "../auth/model/auth.model";
 import Onboarding from "../auth/model/onboarding.model";
-import mongoose from "mongoose"
 
 export const bulkUploadQuestions: RequestHandler = async (req, res) => {
   try {
@@ -114,24 +113,17 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
        res.status(400).json({ message: "Invalid payload" });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-       res.status(400).json({ message: "Invalid userId format" });
-    }
-
-    /*custom id*/
-    // const user = await Auth.findOne({ userId });
-
-    const user = await Auth.findById(userId);
-    // OR
-    // const user = await Auth.findOne({ _id: new mongoose.Types.ObjectId(userId) });
+    /* ✅ USE CUSTOM ID */
+    const user = await Auth.findOne({ userId });
 
     if (!user) {
-      res.status(404).json({
+       res.status(404).json({
         message: "User not found",
       });
     }
 
     const onboarding = await Onboarding.findOne({ user: user._id });
+
     const questionNumbers = answers.map((a: any) => a.questionNumber);
 
     const questions = await Question.find({
@@ -161,12 +153,10 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
       const selectedOption = question.options.find(
         (opt: any) => opt.key === ans.selected,
       );
-      if (!selectedOption) {
-        console.warn(`Invalid option for question ${ans.questionNumber}`);
-        continue;
-      }
 
-      if (selectedOption?.trait) {
+      if (!selectedOption) continue;
+
+      if (selectedOption.trait) {
         learningStyleScores[selectedOption.trait] += 1;
       }
 
@@ -183,11 +173,6 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
       totalCognitive === 0
         ? 0
         : Math.round((correctAnswers / totalCognitive) * 100);
-
-    // res.status(200).json({
-    //   learningStyleBreakdown: learningStyleScores,
-    //   cognitiveScore,
-    // });
 
     /* AI INSIGHTS */
     const aiPayload = {
@@ -234,12 +219,7 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
       lastUpdated: new Date(),
     };
 
-    // res.status(200).json({
-    //   learningProfile,
-    // });
-
     /* UPDATE USER PROFILE */
-
     const userOnboarding = await Onboarding.findOneAndUpdate(
       { user: user._id },
       {
@@ -249,11 +229,12 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
       { new: true, upsert: true },
     );
 
-    res.status(200).json({
+     res.status(200).json({
+      learningProfile,
       userOnboarding,
     });
   } catch (error: any) {
-    res.status(500).json({
+     res.status(500).json({
       message: error.message || "Internal Server Error",
     });
   }
