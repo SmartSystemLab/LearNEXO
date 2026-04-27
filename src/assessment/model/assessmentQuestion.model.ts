@@ -1,10 +1,11 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IAssessmentQuestion extends Document {
   questionNumber: string;
-  subject: string; // e.g. English
+  subject: Types.ObjectId; // e.g. English
   class: string; // e.g. JSS2
-  topic: string; // e.g. Grammar, Comprehension
+
+  topicInstanceId: Types.ObjectId; // e.g. Grammar, Comprehension
 
   question: string;
 
@@ -27,7 +28,8 @@ const AssessmentQuestionSchema = new Schema<IAssessmentQuestion>(
     questionNumber: { type: String, required: true, unique: true },
 
     subject: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Subject",
       required: true,
       lowercase: true,
       trim: true,
@@ -40,11 +42,10 @@ const AssessmentQuestionSchema = new Schema<IAssessmentQuestion>(
       trim: true,
     },
 
-    topic: {
-      type: String,
+    topicInstanceId: {
+      type: Schema.Types.ObjectId,
+      ref: "TopicInstance",
       required: true,
-      lowercase: true,
-      trim: true,
     },
 
     question: { type: String, required: true },
@@ -78,7 +79,7 @@ const AssessmentQuestionSchema = new Schema<IAssessmentQuestion>(
 );
 
 AssessmentQuestionSchema.index({ subject: 1, class: 1 });
-AssessmentQuestionSchema.index({ subject: 1, class: 1, topic: 1 });
+AssessmentQuestionSchema.index({ subject: 1, class: 1, topicId: 1 });
 
 export default mongoose.model<IAssessmentQuestion>(
   "AssessmentQuestion",
