@@ -7,7 +7,9 @@ import {
   deleteQuestion,
   getAssessmentQuestions,
   getQuestionsByTopic,
+  submitAssessment
 } from "./assessment.controller";
+import { verifyJwt } from "../middleware/verifyJwt";
 
 const assessmentRoute = express.Router();
 
@@ -290,7 +292,7 @@ assessmentRoute.patch("/questions/:questionNumber", updateQuestion);
  *                   items:
  *                     type: object
  */
-assessmentRoute.get("/:subject/:gradeClass", getAssessmentQuestions);
+assessmentRoute.get("/:subject/:gradeClass",verifyJwt, getAssessmentQuestions) ;
 
 /**
  * @openapi
@@ -328,6 +330,110 @@ assessmentRoute.get("/:subject/:gradeClass", getAssessmentQuestions);
  *         description: Topic questions fetched successfully
  */
 assessmentRoute.get("/:subject/:gradeClass/topic/:topic", getQuestionsByTopic);
+
+/**
+ * @openapi
+ * /assessment/submit:
+ *   post:
+ *     tags:
+ *       - Assessment
+ *     summary: Submit assessment answers and compute result
+ *     description: >
+ *       Submits a completed assessment, calculates the score,
+ *       determines weak and strong topics, updates topic mastery,
+ *       and optionally generates personalized learning content.
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - assessmentId
+ *               - answers
+ *             properties:
+ *               assessmentId:
+ *                 type: string
+ *                 example: "64f1a2b3c9d4e5f678901234"
+ *
+ *               answers:
+ *                 type: array
+ *                 description: List of answers submitted by the user
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - questionId
+ *                     - selected
+ *                   properties:
+ *                     questionId:
+ *                       type: string
+ *                       example: "64f1a2b3c9d4e5f67890abcd"
+ *
+ *                     selected:
+ *                       type: string
+ *                       description: Selected option key (e.g. a, b, c, d)
+ *                       example: "a"
+ *
+ *     responses:
+ *       200:
+ *         description: Assessment submitted and processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 score:
+ *                   type: number
+ *                   example: 65
+ *
+ *                 weakTopics:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["topicId1", "topicId2"]
+ *
+ *                 strongTopics:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["topicId3"]
+ *
+ *                 topicBreakdown:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       topicInstanceId:
+ *                         type: string
+ *                         example: "64fTopic123"
+ *
+ *                       correct:
+ *                         type: number
+ *                         example: 3
+ *
+ *                       total:
+ *                         type: number
+ *                         example: 5
+ *
+ *                       score:
+ *                         type: number
+ *                         example: 60
+ *
+ *                 content:
+ *                   type: object
+ *                   description: AI-generated learning resources (optional)
+ *
+ *       400:
+ *         description: Invalid request payload or already submitted
+ *
+ *       404:
+ *         description: Assessment not found
+ *
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.post("/submit", verifyJwt, submitAssessment);
 
 
 export default assessmentRoute;

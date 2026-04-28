@@ -1,5 +1,12 @@
-import { RequestHandler } from "express";
-import AssessmentQuestion from "./model/assessmentQuestion.model";
+import { RequestHandler, Request, Response } from "express";
+import AssessmentQuestion from "./models/assessmentQuestion.model";
+import mongoose from "mongoose";
+import Assessment from "./models/assessment.model";
+import TopicInstance from "./models/topicInstance.model";
+import "./models/topic.model"; 
+import UserTopicMastery from "./models/userTopicMastery.model"
+
+
 
 export const bulkUploadQuestions: RequestHandler = async (req, res) => {
   try {
@@ -19,9 +26,23 @@ export const bulkUploadQuestions: RequestHandler = async (req, res) => {
 
 export const getAssessmentQuestions: RequestHandler = async (req, res) => {
   try {
+    console.log(req.user);
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+    }
+
     const { subject, gradeClass } = req.params;
 
+    if (!subject || !gradeClass) {
+      res.status(400).json({ message: "Missing params" });
+    }
 
+    if (!mongoose.Types.ObjectId.isValid(subject)) {
+      res.status(400).json({ message: "Invalid subject id" });
+    }
+
+    const subjectId = new mongoose.Types.ObjectId(subject);
+    const userId = req.user?.id;
     const categories = [
       "grammar",
       "comprehension",
@@ -30,11 +51,12 @@ export const getAssessmentQuestions: RequestHandler = async (req, res) => {
       "writing",
     ];
 
-    const questions = await AssessmentQuestion.aggregate([
+    // ✅ 3. FETCH QUESTIONS
+    const result = await AssessmentQuestion.aggregate([
       {
         $match: {
-          subject,
-          class: gradeClass,
+          subject: subjectId, // ⚠️ if using string, else change to subjectId
+          class: gradeClass.toLowerCase(),
           category: { $in: categories },
         },
       },
@@ -72,16 +94,56 @@ export const getAssessmentQuestions: RequestHandler = async (req, res) => {
           },
         },
       },
-      {
-        $unwind: "$questions",
-      },
-      {
-        $replaceRoot: { newRoot: "$questions" },
-      },
     ]);
 
+    const questions = result[0]?.questions || [];
 
+    if (!questions.length) {
+      res.status(404).json({
+        message: "No questions found",
+      });
+    }
+
+    // ✅ 4. EXTRACT IDS
+    const questionIds = questions.map((q: any) => q._id);
+
+    const topicInstanceIds = [
+      ...new Map(
+        questions.map((q: any) => [
+          q.topicInstanceId.toString(),
+          q.topicInstanceId,
+        ]),
+      ).values(),
+    ];
+
+    // ✅ 5. CREATE ASSESSMENT
+    const assessment = await Assessment.create({
+      userId,
+      subject: subjectId,
+      class: gradeClass.toLowerCase(),
+      type: "initial",
+
+      topicInstances: topicInstanceIds,
+      questions: questionIds,
+      totalQuestions: questionIds.length,
+
+      status: "in-progress",
+      startedAt: new Date(),
+
+      meta: {
+        source: "system",
+        difficultyMix: {
+          easy: questions.filter((q: any) => q.difficulty === "easy").length,
+          medium: questions.filter((q: any) => q.difficulty === "medium")
+            .length,
+          hard: questions.filter((q: any) => q.difficulty === "hard").length,
+        },
+      },
+    });
+
+    // ✅ 6. RESPONSE
     res.status(200).json({
+      assessmentId: assessment._id,
       total: questions.length,
       questions,
     });
@@ -137,13 +199,12 @@ export const getAllQuestions: RequestHandler = async (_req, res) => {
 
 export const getQuestionById: RequestHandler = async (req, res) => {
   try {
-    const {questionNumber }= req.params;
+    const { questionNumber } = req.params;
 
     const question = await AssessmentQuestion.findOne({ questionNumber });
 
-
     if (!question) {
-       res.status(404).json({
+      res.status(404).json({
         message: "Question not found",
       });
     }
@@ -167,7 +228,7 @@ export const updateQuestion: RequestHandler = async (req, res) => {
     );
 
     if (!updated) {
-       res.status(404).json({
+      res.status(404).json({
         message: "Question not found",
       });
     }
@@ -192,7 +253,7 @@ export const deleteQuestion: RequestHandler = async (req, res) => {
     });
 
     if (!deleted) {
-       res.status(404).json({
+      res.status(404).json({
         message: "Question not found",
       });
     }
@@ -203,6 +264,287 @@ export const deleteQuestion: RequestHandler = async (req, res) => {
   } catch (error: any) {
     res.status(500).json({
       message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+export const submitAssessment = async (req: Request, res: Response) => {
+  try {
+
+    const { assessmentId, answers } = req.body;
+
+    if (!assessmentId || !answers?.length) {
+      res.status(400).json({
+        message: "Invalid payload",
+      });
+    }
+
+    // Fetch assessment
+    const assessment = await Assessment.findById(assessmentId);
+
+    if (!assessment) {
+      res.status(404).json({
+        message: "Assessment not found",
+      });
+    }
+
+    // Fetch questions
+    const questions = await AssessmentQuestion.find({
+      _id: { $in: assessment!.questions },
+    });
+
+    if (!questions.length) {
+      res.status(404).json({
+        message: "No questions found for this assessment",
+      });
+    }
+
+    // Build lookup map
+    let correctCount = 0;
+
+    const questionMap = new Map();
+
+    questions.forEach((q) => {
+      questionMap.set((q._id as string).toString(), q);
+    });
+
+    // Topic performance tracking
+    const topicStats: Record<
+      string,
+      {
+        total: number;
+        correct: number;
+        wrong: number;
+      }
+    > = {};
+
+    for (const ans of answers) {
+      const question = questionMap.get(ans.questionId);
+
+      if (!question) continue;
+
+      const topicId = question.topicInstanceId.toString();
+
+      if (!topicStats[topicId]) {
+        topicStats[topicId] = {
+          total: 0,
+          correct: 0,
+          wrong: 0,
+        };
+      }
+
+      topicStats[topicId].total++;
+
+      if (
+        question.answer.toLowerCase().trim() ===
+        ans.selected.toLowerCase().trim()
+      ) {
+  correctCount++;
+        topicStats[topicId].correct++;
+      } else {
+        topicStats[topicId].wrong++;
+      }
+    }
+
+
+    const topicDocs = await TopicInstance.find({
+      _id: { $in: Object.keys(topicStats) },
+    }).populate("topic", "name slug description");
+
+
+    //Strong and weak topics
+const weakTopics: any[] = [];
+const strongTopics: any[] = [];
+const topicBreakdown: any[] = [];
+
+for (const topic of topicDocs) {
+  const stat = topicStats[(topic._id as string).toString()];
+
+  const accuracy = Math.round((stat.correct / stat.total) * 100);
+
+  const breakdown = {
+    topicInstanceId: topic._id,
+
+    topic: {
+      id: topic.topic?._id,
+      name: topic.topic?.name,
+      slug: topic.topic?.slug,
+    },
+
+    difficultyLevel: topic.difficultyLevel,
+    order: topic.order,
+    isCore: topic.isCore,
+
+    performance: {
+      total: stat.total,
+      correct: stat.correct,
+      wrong: stat.wrong,
+      accuracy,
+    },
+  };
+
+  topicBreakdown.push(breakdown);
+
+  if (accuracy < 60) {
+    weakTopics.push(breakdown);
+  }
+
+  if (accuracy >= 80) {
+    strongTopics.push(breakdown);
+  }
+}
+    
+    const totalQuestions = questions.length;
+    const attempted = answers.length;
+    const wrongCount = attempted - correctCount;
+    const unanswered = totalQuestions - attempted;
+
+    const scorePercent = Math.round((correctCount / totalQuestions) * 100);
+
+    //Update assessment
+
+    assessment!.score = scorePercent;
+
+    assessment!.submittedAnswers = answers.map((a: any) => ({
+      questionNumber: a.questionNumber,
+      selected: a.selected,
+      isCorrect: questionMap.get(a.questionNumber)?.answer === a.selected,
+    }));
+
+    assessment!.result = {
+      attempted,
+      correct: correctCount,
+      wrong: wrongCount,
+      unanswered,
+
+      topicPerformance: topicBreakdown.map((t: any) => ({
+        topicInstanceId: t.topicInstanceId,
+        accuracy: t.performance.accuracy,
+        total: t.performance.total,
+        correct: t.performance.correct,
+        wrong: t.performance.wrong,
+      })),
+
+      weakTopics: weakTopics.map((t: any) => t.topicInstanceId),
+
+      strongTopics: strongTopics.map((t: any) => t.topicInstanceId),
+    };
+
+    assessment!.status = "completed";
+    assessment!.completedAt = new Date();
+
+    await assessment!.save();
+
+    // Update user topic mastery
+
+    const userId = assessment!.userId;
+
+    for (const topic of topicBreakdown) {
+      const accuracy = topic.performance.accuracy;
+
+      const existingMastery = await UserTopicMastery.findOne({
+        userId,
+        topicInstanceId: topic.topicInstanceId,
+      });
+
+      if (!existingMastery) {
+        await UserTopicMastery.create({
+          userId,
+          topicInstanceId: topic.topicInstanceId,
+
+          masteryScore: accuracy,
+          attempts: 1,
+
+          lastAccuracy: accuracy,
+
+          weakStreak: accuracy < 60 ? 1 : 0,
+          strongStreak: accuracy >= 80 ? 1 : 0,
+
+          status:
+            accuracy >= 80 ? "mastered" : accuracy < 60 ? "weak" : "improving",
+
+          lastAssessedAt: new Date(),
+        });
+
+        continue;
+      }
+
+      existingMastery.masteryScore = Math.round(
+        existingMastery.masteryScore * 0.7 + accuracy * 0.3,
+      );
+
+      existingMastery.attempts += 1;
+
+      existingMastery.lastAccuracy = accuracy;
+
+      if (accuracy < 60) {
+        existingMastery.weakStreak += 1;
+        existingMastery.strongStreak = 0;
+      }
+
+      if (accuracy >= 80) {
+        existingMastery.strongStreak += 1;
+        existingMastery.weakStreak = 0;
+      }
+
+      if (
+        existingMastery.strongStreak >= 3 ||
+        existingMastery.masteryScore >= 85
+      ) {
+        existingMastery.status = "mastered";
+      } else if (existingMastery.weakStreak >= 2 || accuracy < 60) {
+        existingMastery.status = "weak";
+      } else {
+        existingMastery.status = "improving";
+      }
+
+      existingMastery.lastAssessedAt = new Date();
+
+      await existingMastery.save();
+    }
+
+    const userTopicMastery = await UserTopicMastery.find({
+      userId,
+    });
+
+    // Overall SubjectClass Mastery
+const allTopics = await TopicInstance.find({
+  subject: assessment!.subject,
+  class: assessment!.class,
+});
+
+const masteryRows = await UserTopicMastery.find({
+  userId,
+  topicInstanceId: {
+    $in: allTopics.map((t) => t._id),
+  },
+});
+
+const masteryMap = new Map();
+
+masteryRows.forEach((m) => {
+  masteryMap.set(m.topicInstanceId.toString(), m.masteryScore);
+});
+
+let totalMastery = 0;
+
+for (const topic of allTopics) {
+  totalMastery += masteryMap.get(topic._id.toString()) || 0;
+}
+
+const subjectMastery = Math.round(totalMastery / allTopics.length);
+
+
+    //Response
+    res.status(200).json({
+      message: "Assessment graded",
+      assessment, userTopicMastery, subjectMastery
+    });
+  } catch (error) {
+    console.error(error);
+
+     res.status(500).json({
+      message: "Server error",
     });
   }
 };

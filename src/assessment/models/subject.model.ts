@@ -1,14 +1,11 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface ISubject extends Document {
   name: string; // english
   code?: string; // ENG
   description?: string;
 
-  classes: {
-    className: string; // jss1, jss2, jss3
-    topics: Types.ObjectId[]; // TopicInstance IDs
-  }[];
+ 
 }
 
 const SubjectSchema = new Schema<ISubject>(
@@ -31,23 +28,6 @@ const SubjectSchema = new Schema<ISubject>(
       type: String,
     },
 
-    classes: [
-      {
-        className: {
-          type: String,
-          required: true,
-          lowercase: true,
-          trim: true,
-        },
-
-        topics: [
-          {
-            type: Schema.Types.ObjectId,
-            ref: "TopicInstance",
-          },
-        ],
-      },
-    ],
   },
   { timestamps: true },
 );

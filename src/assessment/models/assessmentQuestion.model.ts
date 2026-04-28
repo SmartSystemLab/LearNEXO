@@ -79,8 +79,7 @@ const AssessmentQuestionSchema = new Schema<IAssessmentQuestion>(
 );
 
 AssessmentQuestionSchema.index({ subject: 1, class: 1 });
-AssessmentQuestionSchema.index({ subject: 1, class: 1, topicId: 1 });
-
+AssessmentQuestionSchema.index({ subject: 1, class: 1, topicInstanceId: 1 });
 export default mongoose.model<IAssessmentQuestion>(
   "AssessmentQuestion",
   AssessmentQuestionSchema,

@@ -1,0 +1,368 @@
+[{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207d4"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207bd"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 1,
+  "estimatedDuration": 30,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207d5"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207be"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 2,
+  "estimatedDuration": 35,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207d6"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207bf"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 3,
+  "estimatedDuration": 20,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207d7"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c0"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 4,
+  "estimatedDuration": 25,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207d8"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c1"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 5,
+  "estimatedDuration": 40,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207d9"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c2"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 6,
+  "estimatedDuration": 45,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207da"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c3"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 7,
+  "estimatedDuration": 35,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207db"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c4"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 8,
+  "estimatedDuration": 30,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207dc"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c5"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "advanced",
+  "order": 9,
+  "estimatedDuration": 40,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207dd"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c6"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 10,
+  "estimatedDuration": 25,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207de"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c7"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 11,
+  "estimatedDuration": 20,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207df"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c8"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 12,
+  "estimatedDuration": 20,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e0"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207c9"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 13,
+  "estimatedDuration": 25,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e1"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207ca"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 14,
+  "estimatedDuration": 30,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e2"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207cb"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 15,
+  "estimatedDuration": 20,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e3"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207cc"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 16,
+  "estimatedDuration": 20,
+  "isCore": false
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e4"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207cd"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "beginner",
+  "order": 17,
+  "estimatedDuration": 20,
+  "isCore": false
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e5"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207ce"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 18,
+  "estimatedDuration": 25,
+  "isCore": false
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e6"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207cf"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 19,
+  "estimatedDuration": 25,
+  "isCore": false
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e7"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207d0"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "advanced",
+  "order": 20,
+  "estimatedDuration": 50,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e8"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207d1"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 21,
+  "estimatedDuration": 40,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207e9"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207d2"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 22,
+  "estimatedDuration": 45,
+  "isCore": true
+},
+{
+  "_id": {
+    "$oid": "69f082ed8318534e9bc207ea"
+  },
+  "topic": {
+    "$oid": "69f07f6f8318534e9bc207d3"
+  },
+  "subject": {
+    "$oid": "69f07d2d8318534e9bc207b8"
+  },
+  "class": "jss2",
+  "difficultyLevel": "intermediate",
+  "order": 23,
+  "estimatedDuration": 45,
+  "isCore": true
+}]

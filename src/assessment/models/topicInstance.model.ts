@@ -3,6 +3,8 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface ITopicInstance extends Document {
   topic: Types.ObjectId;
 
+  subject: Types.ObjectId;
+
   class: string; 
 
   difficultyLevel: "beginner" | "intermediate" | "advanced";
@@ -19,6 +21,12 @@ const TopicInstanceSchema = new Schema<ITopicInstance>(
     topic: {
       type: Schema.Types.ObjectId,
       ref: "Topic",
+      required: true,
+    },
+
+    subject: {
+      type: Schema.Types.ObjectId,
+      ref: "Subject",
       required: true,
     },
 
@@ -53,10 +61,15 @@ const TopicInstanceSchema = new Schema<ITopicInstance>(
 // Prevent duplicates like "Comprehension in JSS2" appearing twice
 TopicInstanceSchema.index({ topic: 1, class: 1 }, { unique: true });
 
+TopicInstanceSchema.index(
+  { topic: 1, class: 1, difficultyLevel: 1 },
+  { unique: true },
+);
+
+TopicInstanceSchema.index({ subject: 1, class: 1 });
+
 // Ordering queries
 TopicInstanceSchema.index({ class: 1, order: 1 });
 
-export default mongoose.model<ITopicInstance>(
-  "TopicInstance",
-  TopicInstanceSchema,
-);
+export default mongoose.models.TopicInstance ||
+  mongoose.model("TopicInstance", TopicInstanceSchema);

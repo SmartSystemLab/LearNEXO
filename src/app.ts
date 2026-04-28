@@ -18,6 +18,7 @@ import assessmentRoute from "./assessment/assessment.router";
 
 import { swaggerSpec } from "./docs/swagger";
 
+
 config();
 
 const app: Application = express();

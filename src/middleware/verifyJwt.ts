@@ -13,23 +13,25 @@ export interface AuthenticatedRequest<
 }
 
 export const verifyJwt = (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(403).json({ message: "No token provided", status: false, statusCode: 403, data: null });
-    return;
+  if (!authHeader?.startsWith("Bearer ")) {
+     res.status(403).json({ message: "No token provided" });
   }
-  const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.TOKEN_SECRET!);
-    (req as AuthenticatedRequest).user = decoded;
+    const token = authHeader!.split(" ")[1];
+
+    req.user = jwt.verify(token, process.env.TOKEN_SECRET!);
+
     next();
-  } catch (error) {
-    res.status(401).json({ message: "Invalid or expired token", status: false, statusCode: 401, data: null });
+  } catch {
+     res.status(401).json({
+      message: "Invalid or expired token",
+    });
   }
 };

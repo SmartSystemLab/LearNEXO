@@ -37,4 +37,4 @@ const TopicSchema = new Schema<ITopic>(
 
 TopicSchema.index({ subject: 1, name: 1 });
 
-export default mongoose.model<ITopic>("Topic", TopicSchema);
+export default mongoose.models.Topic || mongoose.model("Topic", TopicSchema);
