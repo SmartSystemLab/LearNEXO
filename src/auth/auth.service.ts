@@ -210,8 +210,9 @@ export class AuthService {
       });
 
       return true;
-    } catch {
-      return false;
+    } catch (error) {
+      console.error("OTP MAIL ERROR:", error);
+      throw error;
     }
   }
 
