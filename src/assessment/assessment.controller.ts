@@ -31,7 +31,7 @@ export const getAssessmentQuestions: RequestHandler = async (req, res) => {
       res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { subject, gradeClass } = req.params;
+    const { subject, gradeClass } = req.params as { subject: string; gradeClass: string };
 
     if (!subject || !gradeClass) {
       res.status(400).json({ message: "Missing params" });
@@ -305,7 +305,7 @@ export const submitAssessment = async (req: Request, res: Response) => {
     const questionMap = new Map();
 
     questions.forEach((q) => {
-      questionMap.set((q._id as string).toString(), q);
+      questionMap.set(q._id!.toString(), q);
     });
 
     // Topic performance tracking

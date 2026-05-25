@@ -16,7 +16,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const sendOtp = async (req: Request, res: Response): Promise<void> => {
-  const { email } = req.params;
+  const { email } = req.params as { email: string };
 
   const result = await authService.sendOtp(email);
 

@@ -8,56 +8,110 @@ import Onboarding from "./model/onboarding.model";
 import Otp from "./model/otp.model";
 import { ApiResponse } from "../common/dto/api-response";
 import { EUserRole } from "./types/enums.type";
+import { nanoid } from "nanoid";
+
+
 
 export class AuthService {
-  async signUp(dto: any): Promise<ApiResponse> {
-    const existingUser = await Auth.findOne({ email: dto.email });
 
-    if (existingUser) {
+  private transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: Number(process.env.SMTP_PORT) === 465,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  constructor() {
+    this.transporter.verify((error,) => {
+      if (error) {
+        console.error("SMTP ERROR:", error);
+      } else {
+        console.log("SMTP READY");
+      }
+    });
+  }
+  async signUp(dto: any): Promise<ApiResponse> {
+    try {
+      const existingUser = await Auth.findOne({
+        email: dto.email,
+      });
+
+      if (existingUser) {
+        return {
+          status: false,
+          statusCode: 400,
+          message: "User already exists",
+          data: null,
+        };
+      }
+
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+      // Role prefixes
+      const rolePrefixMap: Record<EUserRole, string> = {
+        parent: "PAR",
+        student: "STU",
+        teacher: "TEA",
+        admin: "ADM",
+        super_admin: "SUP",
+      };
+
+      // Generate unique user ID
+      const generateUserId = (role: EUserRole) => {
+        const prefix = rolePrefixMap[role];
+
+        return `${prefix}-${nanoid(6).toUpperCase()}`;
+      };
+
+      const userId = generateUserId(dto.role || EUserRole.STUDENT);
+
+      // Create unverified user first
+      const user = await Auth.create({
+        ...dto,
+        userId,
+        password: hashedPassword,
+        isVerified: false,
+      });
+
+      // Send OTP
+      const otpSent = await this.iSendOtp(dto.email);
+
+      // Rollback user creation if OTP fails
+      if (!otpSent) {
+        await Auth.findByIdAndDelete(user._id);
+
+        return {
+          status: false,
+          statusCode: 500,
+          message: "Failed to send OTP",
+          data: null,
+        };
+      }
+
+      // Remove password safely
+      const userResponse = user.toObject();
+
+      delete userResponse.password;
+
+      return {
+        status: true,
+        statusCode: 201,
+        message: "User created successfully. OTP sent to email.",
+        data: userResponse,
+      };
+    } catch (error) {
+      console.error("SIGNUP ERROR:", error);
+
       return {
         status: false,
-        statusCode: 400,
-        message: "User already exists",
+        statusCode: 500,
+        message: "Something went wrong",
         data: null,
       };
     }
-
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-    await this.iSendOtp(dto.email);
-
-    //Unique ID for users
-    const rolePrefixMap: Record<EUserRole, string> = {
-      parent: "PAR",
-      student: "STU",
-      teacher: "TEA",
-      admin: "ADM",
-      super_admin: "SUP",
-    };
-
-    const generateUserId = (role: EUserRole) => {
-      const prefix = rolePrefixMap[role];
-      const unique =
-        Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
-      return `${prefix}-${unique}`;
-    };
-
-    const userId = generateUserId(dto.role || EUserRole.STUDENT);
-
-    const user = await Auth.create({
-      ...dto,
-      userId,
-      password: hashedPassword,
-    });
-
-    user.password = undefined;
-
-    return {
-      status: true,
-      statusCode: 201,
-      message: "User created successfully",
-      data: user,
-    };
   }
 
   /**
@@ -182,37 +236,58 @@ export class AuthService {
    */
   private async iSendOtp(email: string): Promise<boolean> {
     try {
+      console.log("[iSendOtp] SMTP config →", {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        user: process.env.SMTP_USER,
+        passSet: !!process.env.SMTP_PASS,
+      });
+
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
       const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
-
       const expires = new Date(Date.now() + 10 * 60 * 1000);
 
+      console.log("[iSendOtp] Saving OTP to DB for:", email);
       await Otp.findOneAndUpdate(
         { email },
         { otp: hashedOtp, otpExpiresIn: expires },
-        { upsert: true },
+        { upsert: true, new: true },
       );
+      console.log("[iSendOtp] OTP saved to DB");
 
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.AUTH_EMAIL,
-          pass: process.env.AUTH_APP_PASSWORD,
-        },
-      });
-
-      await transporter.sendMail({
+      console.log("[iSendOtp] Sending mail to:", email);
+      const info = await this.transporter.sendMail({
         from: `"LearNEXO" <${process.env.AUTH_EMAIL}>`,
         to: email,
-        subject: "Verify Email",
-        html: `<h2>Your OTP is: ${otp}</h2>`,
+        subject: "Verify Your Email",
+        html: `
+        <div style="font-family: Arial, sans-serif;">
+          <h2>LearNEXO Email Verification</h2>
+
+          <p>Your OTP Code is:</p>
+
+          <h1 style="letter-spacing: 5px;">
+            ${otp}
+          </h1>
+
+          <p>This code expires in 10 minutes.</p>
+
+          <p>
+            If you did not request this, please ignore this email.
+          </p>
+        </div>
+      `,
       });
 
+      console.log("[iSendOtp] Mail sent:", info.messageId);
       return true;
     } catch (error) {
-      console.error("OTP MAIL ERROR:", error);
-      throw error;
+      const err = error as Record<string, unknown>;
+      console.error("[iSendOtp] FAILED at step:", err?.stage ?? "unknown");
+      console.error("[iSendOtp] Error code:", err?.code);
+      console.error("[iSendOtp] Error message:", err?.message);
+      console.error("[iSendOtp] Full error:", error);
+      return false;
     }
   }
 

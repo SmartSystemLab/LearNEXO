@@ -37,7 +37,7 @@ export const getAllQuestions: RequestHandler = async (_req, res) => {
 
 export const getQuestionById: RequestHandler = async (req, res) => {
   try {
-    const questionNumber = req.params.questionNumber.padStart(3, "0");
+    const questionNumber = (req.params.questionNumber as string).padStart(3, "0");
 
     const question = await Question.findOne({ questionNumber });
 
@@ -58,7 +58,7 @@ export const getQuestionById: RequestHandler = async (req, res) => {
 };
 export const updateQuestion: RequestHandler = async (req, res) => {
   try {
-    const questionNumber = req.params.questionNumber.padStart(3, "0");
+    const questionNumber = (req.params.questionNumber as string).padStart(3, "0");
 
     const updated = await Question.findOneAndUpdate(
       { questionNumber },
@@ -85,7 +85,7 @@ export const updateQuestion: RequestHandler = async (req, res) => {
 
 export const deleteQuestion: RequestHandler = async (req, res) => {
   try {
-    const questionNumber = req.params.questionNumber.padStart(3, "0");
+    const questionNumber = (req.params.questionNumber as string).padStart(3, "0");
 
     const deleted = await Question.findOneAndDelete({ questionNumber });
 
