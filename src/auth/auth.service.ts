@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 
 import Auth from "./model/auth.model";
 import Onboarding from "./model/onboarding.model";
@@ -13,26 +12,6 @@ import { nanoid } from "nanoid";
 
 
 export class AuthService {
-
-  private transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
-  constructor() {
-    this.transporter.verify((error,) => {
-      if (error) {
-        console.error("SMTP ERROR:", error);
-      } else {
-        console.log("SMTP READY");
-      }
-    });
-  }
   async signUp(dto: any): Promise<ApiResponse> {
     try {
       const existingUser = await Auth.findOne({
@@ -236,57 +215,48 @@ export class AuthService {
    */
   private async iSendOtp(email: string): Promise<boolean> {
     try {
-      console.log("[iSendOtp] SMTP config →", {
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        user: process.env.SMTP_USER,
-        passSet: !!process.env.SMTP_PASS,
-      });
-
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
       const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-      console.log("[iSendOtp] Saving OTP to DB for:", email);
       await Otp.findOneAndUpdate(
         { email },
         { otp: hashedOtp, otpExpiresIn: expires },
         { upsert: true, new: true },
       );
-      console.log("[iSendOtp] OTP saved to DB");
 
-      console.log("[iSendOtp] Sending mail to:", email);
-      const info = await this.transporter.sendMail({
-        from: `"LearNEXO" <${process.env.AUTH_EMAIL}>`,
-        to: email,
-        subject: "Verify Your Email",
-        html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>LearNEXO Email Verification</h2>
-
-          <p>Your OTP Code is:</p>
-
-          <h1 style="letter-spacing: 5px;">
-            ${otp}
-          </h1>
-
-          <p>This code expires in 10 minutes.</p>
-
-          <p>
-            If you did not request this, please ignore this email.
-          </p>
-        </div>
-      `,
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY!,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: { name: "LearNEXO", email: process.env.AUTH_EMAIL },
+          to: [{ email }],
+          subject: "Verify Your Email",
+          htmlContent: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2>LearNEXO Email Verification</h2>
+              <p>Your OTP Code is:</p>
+              <h1 style="letter-spacing: 5px;">${otp}</h1>
+              <p>This code expires in 10 minutes.</p>
+              <p>If you did not request this, please ignore this email.</p>
+            </div>
+          `,
+        }),
       });
 
-      console.log("[iSendOtp] Mail sent:", info.messageId);
+      if (!res.ok) {
+        const body = await res.text();
+        console.error("[iSendOtp] Brevo API error:", res.status, body);
+        return false;
+      }
+
+      console.log("[iSendOtp] Mail sent via Brevo API to:", email);
       return true;
     } catch (error) {
-      const err = error as Record<string, unknown>;
-      console.error("[iSendOtp] FAILED at step:", err?.stage ?? "unknown");
-      console.error("[iSendOtp] Error code:", err?.code);
-      console.error("[iSendOtp] Error message:", err?.message);
-      console.error("[iSendOtp] Full error:", error);
+      console.error("[iSendOtp] Error:", error);
       return false;
     }
   }
