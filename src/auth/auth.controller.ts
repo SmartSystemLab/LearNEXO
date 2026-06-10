@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
+import { AuthenticatedRequest } from "../middleware/verifyJwt";
 
 const authService = new AuthService();
 
@@ -36,7 +37,8 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 };
 
 export const onboarding = async (req: Request, res: Response): Promise<void> => {
-  const result = await authService.onboarding(req.body, req.file);
+  const { user } = req as AuthenticatedRequest;
+  const result = await authService.onboarding(req.body, req.file, user);
 
   res.status(result.statusCode).json(result);
 };

@@ -42,14 +42,11 @@ export const getQuestionById: RequestHandler = async (req, res) => {
     const question = await Question.findOne({ questionNumber });
 
     if (!question) {
-      res.status(404).json({
-        message: "Question not found",
-      });
+      res.status(404).json({ message: "Question not found" });
+      return;
     }
 
-    res.status(200).json({
-      question,
-    });
+    res.status(200).json({ question });
   } catch (error: any) {
     res.status(500).json({
       message: error.message || "Internal Server Error",
@@ -67,15 +64,11 @@ export const updateQuestion: RequestHandler = async (req, res) => {
     );
 
     if (!updated) {
-      res.status(404).json({
-        message: "Question not found",
-      });
+      res.status(404).json({ message: "Question not found" });
+      return;
     }
 
-    res.status(200).json({
-      message: "Question updated",
-      updated,
-    });
+    res.status(200).json({ message: "Question updated", updated });
   } catch (error: any) {
     res.status(500).json({
       message: error.message || "Internal Server Error",
@@ -90,14 +83,11 @@ export const deleteQuestion: RequestHandler = async (req, res) => {
     const deleted = await Question.findOneAndDelete({ questionNumber });
 
     if (!deleted) {
-      res.status(404).json({
-        message: "Question not found",
-      });
+      res.status(404).json({ message: "Question not found" });
+      return;
     }
 
-    res.status(200).json({
-      message: "Question deleted",
-    });
+    res.status(200).json({ message: "Question deleted" });
   } catch (error: any) {
     res.status(500).json({
       message: error.message || "Internal Server Error",
@@ -110,16 +100,15 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
     const { userId, answers } = req.body;
 
     if (!userId || !answers || !Array.isArray(answers)) {
-       res.status(400).json({ message: "Invalid payload" });
+      res.status(400).json({ message: "Invalid payload" });
+      return;
     }
 
-    /* ✅ USE CUSTOM ID */
     const user = await Auth.findOne({ userId });
 
     if (!user) {
-       res.status(404).json({
-        message: "User not found",
-      });
+      res.status(404).json({ message: "User not found" });
+      return;
     }
 
     const onboarding = await Onboarding.findOne({ user: user._id });

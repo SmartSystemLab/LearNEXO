@@ -256,7 +256,6 @@ authRoute.get("/send-otp/:email", sendOtp);
  *               - town
  *               - state
  *               - schoolName
- *               - learningStyle
  *             properties:
  *               dateOfBirth:
  *                 type: string

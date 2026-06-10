@@ -57,7 +57,7 @@ export const onboardingValidation = Joi.object({
     'any.required': 'Date of birth is required',
   }),
 
-  class: Joi.string().required().messages({
+  studentClass: Joi.string().required().messages({
     'string.empty': 'Class is required',
     'any.required': 'Class is required',
   }),
@@ -97,10 +97,7 @@ export const onboardingValidation = Joi.object({
     'any.required': 'residential address is required',
   }),
 
-  learningStyle: Joi.string().required().messages({
-    'string.empty': 'Learning style is required',
-    'any.required': 'Learning style is required',
-  }),
+  learningStyle: Joi.string().optional(),
 
   pastExam: Joi.object({
     firstTerm: Joi.string().required().messages({

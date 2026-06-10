@@ -193,21 +193,48 @@ export class AuthService {
    */
   async onboarding(
     body: any,
-    file?: Express.Multer.File,
+    file: Express.Multer.File | undefined,
+    authUser: { id: string; email: string; role: string },
   ): Promise<ApiResponse> {
-    await Onboarding.create({
-      ...body,
-      dateOfBirth: new Date(body.dateOfBirth),
-      pastExam: JSON.parse(body.pastExam),
-      photo: file,
-    });
+    try {
+      const user = await Auth.findById(authUser.id);
 
-    return {
-      status: true,
-      statusCode: 200,
-      message: "Onboarding completed",
-      data: null,
-    };
+      if (!user) {
+        return {
+          status: false,
+          statusCode: 404,
+          message: "User not found",
+          data: null,
+        };
+      }
+
+      await Onboarding.findOneAndUpdate(
+        { user: authUser.id },
+        {
+          ...body,
+          user: authUser.id,
+          userId: user.userId,
+          dateOfBirth: new Date(body.dateOfBirth),
+          photo: file?.path ?? null,
+        },
+        { upsert: true, new: true },
+      );
+
+      return {
+        status: true,
+        statusCode: 200,
+        message: "Onboarding completed",
+        data: null,
+      };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Onboarding failed";
+      return {
+        status: false,
+        statusCode: 500,
+        message: msg,
+        data: null,
+      };
+    }
   }
 
   /**
