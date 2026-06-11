@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AuthenticatedRequest } from "../middleware/verifyJwt";
+import { OnboardingDto } from "./types/dto.types";
 
 const authService = new AuthService();
 
@@ -38,7 +39,22 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
 export const onboarding = async (req: Request, res: Response): Promise<void> => {
   const { user } = req as AuthenticatedRequest;
-  const result = await authService.onboarding(req.body, req.file, user);
+  const body = req.body as OnboardingDto;
+  const result = await authService.onboarding(body, req.file, user);
+
+  res.status(result.statusCode).json(result);
+};
+
+export const getProfile = async (req: Request, res: Response): Promise<void> => {
+  const { user } = req as AuthenticatedRequest;
+  const result = await authService.getProfile(user);
+
+  res.status(result.statusCode).json(result);
+};
+
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  const { user } = req as AuthenticatedRequest;
+  const result = await authService.updateProfile(user, req.body);
 
   res.status(result.statusCode).json(result);
 };

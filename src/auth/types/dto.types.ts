@@ -24,18 +24,32 @@ export type PastExamDto = {
   thirdTerm: string;
 };
 
+export type LearningProfileDto = {
+  learningStyle?: "visual" | "auditory" | "reading" | "kinesthetic" | null;
+  confidence?: number | null;
+  cognitiveScore?: number | null;
+  recommendedFormats?: string[];
+  explanation?: string | null;
+  risk_of_misclassification?: "low" | "medium" | "high" | null;
+  lastUpdated?: Date | null;
+};
+
 export type OnboardingDto = {
+  user?: string;
+  userId?: string;
   dateOfBirth: Date;
-  class: string;
-  gender: string;
+  studentClass: string;
+  gender: "male" | "female" | "other";
+  stateOfOrigin: string;
+  residentialAddress: string;
   town: string;
   state: string;
   schoolName: string;
   schoolAddress: string;
-  learningStyle: string;
+  learningProfile?: LearningProfileDto;
+  learningStyle?: string;
   pastExam: PastExamDto;
-  photo: File;
+  photo?: string | Express.Multer.File | File | null;
   language: string;
-  residentialAddress: string;
-  stateOfOrigin: string;
 };
+

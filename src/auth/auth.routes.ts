@@ -19,6 +19,8 @@ import {
   sendOtp,
   resetPassword,
   onboarding,
+  getProfile,
+  updateProfile,
 } from "./auth.controller";
 
 const upload = multer({ dest: "uploads/" });
@@ -296,5 +298,52 @@ authRoute.post(
   validateRequest(onboardingValidation),
   onboarding,
 );
+
+/**
+ * @openapi
+ * /auth/profile:
+ *   get:
+ *     tags:
+ *       - Auth
+ *     summary: Get the authenticated user's profile and onboarding info
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile fetched successfully
+ *       404:
+ *         description: User not found
+ */
+authRoute.get("/profile", verifyJwt, getProfile);
+
+/**
+ * @openapi
+ * /auth/profile:
+ *   patch:
+ *     tags:
+ *       - Auth
+ *     summary: Update the authenticated user's basic profile details
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       404:
+ *         description: User not found
+ */
+authRoute.patch("/profile", verifyJwt, updateProfile);
 
 export default authRoute;

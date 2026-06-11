@@ -8,6 +8,7 @@ import Otp from "./model/otp.model";
 import { ApiResponse } from "../common/dto/api-response";
 import { EUserRole } from "./types/enums.type";
 import { nanoid } from "nanoid";
+import { OnboardingDto } from "./types/dto.types";
 
 
 
@@ -192,7 +193,7 @@ export class AuthService {
    * ONBOARDING
    */
   async onboarding(
-    body: any,
+    body: OnboardingDto,
     file: Express.Multer.File | undefined,
     authUser: { id: string; email: string; role: string },
   ): Promise<ApiResponse> {
@@ -228,6 +229,93 @@ export class AuthService {
       };
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Onboarding failed";
+      return {
+        status: false,
+        statusCode: 500,
+        message: msg,
+        data: null,
+      };
+    }
+  }
+
+  /**
+   * GET PROFILE
+   */
+  async getProfile(authUser: { id: string; email: string; role: string }): Promise<ApiResponse> {
+    try {
+      const user = await Auth.findById(authUser.id).select("-password");
+
+      if (!user) {
+        return {
+          status: false,
+          statusCode: 404,
+          message: "User not found",
+          data: null,
+        };
+      }
+
+      const onboarding = await Onboarding.findOne({ user: authUser.id })
+        .lean<({ photo?: string | null } & Record<string, unknown>) | null>();
+
+      if (onboarding?.photo) {
+        onboarding.photo = `/${onboarding.photo.replace(/^\/+/, "")}`;
+      }
+
+      return {
+        status: true,
+        statusCode: 200,
+        message: "Profile fetched successfully",
+        data: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          userId: user.userId,
+          ...onboarding,
+        },
+      };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Failed to fetch profile";
+      return {
+        status: false,
+        statusCode: 500,
+        message: msg,
+        data: null,
+      };
+    }
+  }
+
+  /**
+   * UPDATE PROFILE
+   */
+  async updateProfile(
+    authUser: { id: string; email: string; role: string },
+    body: { firstName?: string; lastName?: string; email?: string },
+  ): Promise<ApiResponse> {
+    try {
+      const user = await Auth.findByIdAndUpdate(
+        authUser.id,
+        { $set: body },
+        { new: true },
+      ).select("-password");
+
+      if (!user) {
+        return {
+          status: false,
+          statusCode: 404,
+          message: "User not found",
+          data: null,
+        };
+      }
+
+      return {
+        status: true,
+        statusCode: 200,
+        message: "Profile updated successfully",
+        data: user,
+      };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Failed to update profile";
       return {
         status: false,
         statusCode: 500,
