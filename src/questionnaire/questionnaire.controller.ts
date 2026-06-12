@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import Question from "./model/question.model";
 import Auth from "../auth/model/auth.model";
 import Onboarding from "../auth/model/onboarding.model";
+import { AuthenticatedRequest } from "../middleware/verifyJwt";
 
 export const bulkUploadQuestions: RequestHandler = async (req, res) => {
   try {
@@ -97,14 +98,15 @@ export const deleteQuestion: RequestHandler = async (req, res) => {
 
 export const submitQuestionnaire: RequestHandler = async (req, res) => {
   try {
-    const { userId, answers } = req.body;
+    const { user: authUser } = req as AuthenticatedRequest;
+    const { answers } = req.body;
 
-    if (!userId || !answers || !Array.isArray(answers)) {
+    if (!answers || !Array.isArray(answers)) {
       res.status(400).json({ message: "Invalid payload" });
       return;
     }
 
-    const user = await Auth.findOne({ userId });
+    const user = await Auth.findById(authUser.id);
 
     if (!user) {
       res.status(404).json({ message: "User not found" });
@@ -182,7 +184,7 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
     };
 
     const response = await fetch(
-      "https://learnexo-ai.onrender.com/api/learning-style/detailed",
+      "https://learnexo-ai-1.onrender.com/api/learning-style/detailed",
       {
         method: "POST",
         headers: {

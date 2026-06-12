@@ -7,6 +7,7 @@ import {
   deleteQuestion,
   submitQuestionnaire
 } from "./questionnaire.controller";
+import { verifyJwt } from "../middleware/verifyJwt";
 
 const questionnaireRoute = express.Router();
 
@@ -296,6 +297,9 @@ questionnaireRoute.delete("/questions/:questionNumber", deleteQuestion);
  *       
  *       This endpoint processes everything in a single flow and returns the computed results.
  *
+ *     security:
+ *       - bearerAuth: []
+ *
  *     requestBody:
  *       required: true
  *       content:
@@ -303,22 +307,17 @@ questionnaireRoute.delete("/questions/:questionNumber", deleteQuestion);
  *           schema:
  *             type: object
  *             required:
- *               - userId
  *               - answers
  *             properties:
- *               userId:
- *                 type: string
- *                 example: "STU-123456"
- *
  *               answers:
  *                 type: array
  *                 items:
  *                   type: object
  *                   required:
- *                     - questionId
+ *                     - questionNumber
  *                     - selected
  *                   properties:
- *                     questionId:
+ *                     questionNumber:
  *                       type: string
  *                       example: "001"
  *
@@ -370,6 +369,10 @@ questionnaireRoute.delete("/questions/:questionNumber", deleteQuestion);
  *                       type: string
  *                       format: date-time
  *
+ *                 userOnboarding:
+ *                   type: object
+ *                   description: The user's onboarding record, updated with the computed learningProfile
+ *
  *       400:
  *         description: Invalid request payload
  *
@@ -379,6 +382,6 @@ questionnaireRoute.delete("/questions/:questionNumber", deleteQuestion);
  *       500:
  *         description: Internal server error
  */
-questionnaireRoute.post("/submit", submitQuestionnaire);
+questionnaireRoute.post("/submit", verifyJwt, submitQuestionnaire);
 
 export default questionnaireRoute;
