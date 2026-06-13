@@ -38,7 +38,10 @@ export const getAllQuestions: RequestHandler = async (_req, res) => {
 
 export const getQuestionById: RequestHandler = async (req, res) => {
   try {
-    const questionNumber = (req.params.questionNumber as string).padStart(3, "0");
+    const questionNumber = (req.params.questionNumber as string).padStart(
+      3,
+      "0",
+    );
 
     const question = await Question.findOne({ questionNumber });
 
@@ -56,7 +59,10 @@ export const getQuestionById: RequestHandler = async (req, res) => {
 };
 export const updateQuestion: RequestHandler = async (req, res) => {
   try {
-    const questionNumber = (req.params.questionNumber as string).padStart(3, "0");
+    const questionNumber = (req.params.questionNumber as string).padStart(
+      3,
+      "0",
+    );
 
     const updated = await Question.findOneAndUpdate(
       { questionNumber },
@@ -79,7 +85,10 @@ export const updateQuestion: RequestHandler = async (req, res) => {
 
 export const deleteQuestion: RequestHandler = async (req, res) => {
   try {
-    const questionNumber = (req.params.questionNumber as string).padStart(3, "0");
+    const questionNumber = (req.params.questionNumber as string).padStart(
+      3,
+      "0",
+    );
 
     const deleted = await Question.findOneAndDelete({ questionNumber });
 
@@ -220,12 +229,12 @@ export const submitQuestionnaire: RequestHandler = async (req, res) => {
       { new: true, upsert: true },
     );
 
-     res.status(200).json({
+    res.status(200).json({
       learningProfile,
       userOnboarding,
     });
   } catch (error: any) {
-     res.status(500).json({
+    res.status(500).json({
       message: error.message || "Internal Server Error",
     });
   }
