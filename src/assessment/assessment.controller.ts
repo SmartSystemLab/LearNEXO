@@ -3,8 +3,10 @@ import AssessmentQuestion from "./models/assessmentQuestion.model";
 import mongoose from "mongoose";
 import Assessment from "./models/assessment.model";
 import TopicInstance from "./models/topicInstance.model";
-import "./models/topic.model"; 
+import "./models/topic.model";
 import UserTopicMastery from "./models/userTopicMastery.model"
+import Subject from "./models/subject.model";
+import { buildRecommendation } from "./assessment.helpers";
 
 
 
@@ -534,11 +536,35 @@ for (const topic of allTopics) {
 
 const subjectMastery = Math.round(totalMastery / allTopics.length);
 
+    // Recommendations + insight (shared with /catalog/.../insight endpoints)
+    const subjectDoc = await Subject.findById(assessment!.subject).select("name").lean();
+
+    const { recommendedNextTopic, explanation, recommendations } = buildRecommendation(
+      topicBreakdown.map((t: any) => ({ name: t.topic.name, accuracy: t.performance.accuracy })),
+      weakTopics.map((t: any) => t.topic.name),
+      strongTopics.map((t: any) => t.topic.name),
+      subjectDoc?.name ?? "this subject",
+    );
+
+    const toInsightTopic = (t: any) => ({
+      topicInstanceId: t.topicInstanceId,
+      name: t.topic.name,
+      slug: t.topic.slug,
+      accuracy: t.performance.accuracy,
+    });
 
     //Response
     res.status(200).json({
       message: "Assessment graded",
-      assessment, userTopicMastery, subjectMastery
+      assessment, userTopicMastery, subjectMastery,
+      recommendations,
+      insight: {
+        score: scorePercent,
+        weakTopics: weakTopics.map(toInsightTopic),
+        strongTopics: strongTopics.map(toInsightTopic),
+        recommendedNextTopic,
+        explanation,
+      },
     });
   } catch (error) {
     console.error(error);

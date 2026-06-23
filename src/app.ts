@@ -15,6 +15,8 @@ import mongooseConnection from "./connections/database.connection";
 import authRoute from "./auth/auth.routes";
 import questionnaireRoute from "./questionnaire/questionnaire.routes";
 import assessmentRoute from "./assessment/assessment.router";
+import catalogRoute from "./assessment/assessment.catalog.router";
+import { seedSubjects } from "./assessment/assessment.seed";
 
 import { swaggerSpec } from "./docs/swagger";
 
@@ -75,6 +77,7 @@ app.get("/", (req: Request, res: Response<ResponseInterface>) => {
  */
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/questionnaire", questionnaireRoute);
+app.use("/api/v1/assessment/catalog", catalogRoute);
 app.use("/api/v1/assessment", assessmentRoute);
 
 /**
@@ -91,6 +94,7 @@ const PORT = Number(process.env.PORT) || 3000;
 (async () => {
   try {
     await mongooseConnection();
+    await seedSubjects();
   } catch (error) {
     Logging.error("Unable to connect to the database: " + error);
   }

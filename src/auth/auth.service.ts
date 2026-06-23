@@ -351,12 +351,27 @@ export class AuthService {
           to: [{ email }],
           subject: "Verify Your Email",
           htmlContent: `
-            <div style="font-family: Arial, sans-serif;">
-              <h2>LearNEXO Email Verification</h2>
-              <p>Your OTP Code is:</p>
-              <h1 style="letter-spacing: 5px;">${otp}</h1>
-              <p>This code expires in 10 minutes.</p>
-              <p>If you did not request this, please ignore this email.</p>
+            <div style="background-color:#eef2ff; padding:32px 16px; font-family:'Segoe UI', Arial, sans-serif;">
+              <div style="max-width:480px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(15,23,42,0.08);">
+                <div style="background:linear-gradient(135deg,#2563eb,#1d4ed8); padding:28px 32px; text-align:center;">
+                  <h1 style="margin:0; color:#ffffff; font-size:22px; letter-spacing:1px;">LearNEXO</h1>
+                </div>
+                <div style="padding:32px;">
+                  <h2 style="margin:0 0 12px; color:#0f172a; font-size:18px;">Verify your email</h2>
+                  <p style="margin:0 0 24px; color:#475569; font-size:14px; line-height:1.6;">
+                    Use the code below to verify your email address. This code expires in 10 minutes.
+                  </p>
+                  <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:18px; text-align:center; margin-bottom:24px;">
+                    <span style="font-size:32px; font-weight:700; letter-spacing:8px; color:#1d4ed8;">${otp}</span>
+                  </div>
+                  <p style="margin:0; color:#94a3b8; font-size:12px; line-height:1.6;">
+                    If you did not request this code, you can safely ignore this email.
+                  </p>
+                </div>
+                <div style="background:#f8fafc; padding:16px 32px; text-align:center; border-top:1px solid #e2e8f0;">
+                  <p style="margin:0; color:#94a3b8; font-size:11px;">&copy; ${new Date().getFullYear()} LearNEXO. All rights reserved.</p>
+                </div>
+              </div>
             </div>
           `,
         }),
