@@ -50,6 +50,8 @@ interface IAssessment extends Document {
     strongTopics: Types.ObjectId[];
   };
 
+  aiContent?: any[] | null;
+
   meta?: {
     source: "system" | "user" | "recommendation";
 
@@ -87,7 +89,7 @@ const AssessmentSchema = new Schema<IAssessment>(
 
     type: {
       type: String,
-      enum: ["initial", "general", "topic"],
+      enum: ["initial", "general", "category", "topic"],
       required: true,
       index: true,
     },
@@ -193,6 +195,11 @@ const AssessmentSchema = new Schema<IAssessment>(
         },
       ],
     },
+    aiContent: [
+      {
+        type: Schema.Types.Mixed,
+      },
+    ],
     meta: {
       source: {
         type: String,

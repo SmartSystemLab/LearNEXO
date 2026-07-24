@@ -3,12 +3,51 @@ import AssessmentQuestion from "./models/assessmentQuestion.model";
 import mongoose from "mongoose";
 import Assessment from "./models/assessment.model";
 import TopicInstance from "./models/topicInstance.model";
-import "./models/topic.model";
+import Topic from "./models/topic.model";
 import UserTopicMastery from "./models/userTopicMastery.model"
 import Subject from "./models/subject.model";
-import { buildRecommendation } from "./assessment.helpers";
+import { buildRecommendation, resolveSubject } from "./assessment.helpers";
+import Onboarding from "../auth/model/onboarding.model";
+import axios from "axios";
 
 
+
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL;
+
+async function fetchAiContent(
+  weakTopicSlugs: string[],
+  subjectName: string,
+  classLevel: string,
+  learningStyle: string | null,
+): Promise<Record<string, unknown> | null> {
+  if (!weakTopicSlugs.length) return null;
+
+  const topics = weakTopicSlugs.map((slug) => ({
+    topic: slug,
+    mastery: 0.2,
+    learning_stage: "foundation",
+  }));
+
+  try {
+    const response = await axios.post(
+      `${AI_SERVICE_URL}/content`,
+      {
+        mode: "multi_topic",
+        topics,
+        subject: subjectName,
+        class_level: classLevel.toUpperCase(),
+        learning_style: learningStyle || "visual",
+        content_depth: "core",
+        focus_reason: "general_assessment",
+      },
+      { timeout: 30000 },
+    );
+    return response.data as Record<string, unknown>;
+  } catch (err) {
+    console.error("[AI Content] Failed to fetch:", (err as Error).message);
+    return null;
+  }
+}
 
 export const bulkUploadQuestions: RequestHandler = async (req, res) => {
   try {
@@ -26,124 +65,206 @@ export const bulkUploadQuestions: RequestHandler = async (req, res) => {
   }
 };
 
+function getDifficultyMix(classLevel: string, total: number): { easy: number; medium: number; hard: number } {
+  const mixes: Record<string, [number, number, number]> = {
+    jss1: [0.60, 0.30, 0.10],
+    jss2: [0.50, 0.35, 0.15],
+    jss3: [0.40, 0.40, 0.20],
+    ss1: [0.30, 0.40, 0.30],
+    ss2: [0.20, 0.40, 0.40],
+    ss3: [0.15, 0.35, 0.50],
+  };
+  const [e, m, h] = mixes[classLevel.toLowerCase()] ?? [0.33, 0.33, 0.34];
+  const easy = Math.round(total * e);
+  const medium = Math.round(total * m);
+  const hard = total - easy - medium;
+  return { easy, medium, hard };
+}
+
+async function sampleQuestionsWithDifficulty(
+  matchStage: Record<string, unknown>,
+  total: number,
+  classLevel: string,
+): Promise<any[]> {
+  const { easy, medium, hard } = getDifficultyMix(classLevel, total);
+
+  const result = await AssessmentQuestion.aggregate([
+    { $match: matchStage },
+    {
+      $facet: {
+        easy: [
+          { $match: { difficulty: "easy" } },
+          { $sample: { size: easy } },
+        ],
+        medium: [
+          { $match: { difficulty: "medium" } },
+          { $sample: { size: medium } },
+        ],
+        hard: [
+          { $match: { difficulty: "hard" } },
+          { $sample: { size: hard } },
+        ],
+      },
+    },
+    {
+      $project: {
+        questions: {
+          $concatArrays: ["$easy", "$medium", "$hard"],
+        },
+      },
+    },
+  ]);
+
+  return result[0]?.questions || [];
+}
+
 export const getAssessmentQuestions: RequestHandler = async (req, res) => {
   try {
-    console.log(req.user);
     if (!req.user) {
       res.status(401).json({ message: "Unauthorized" });
+      return;
     }
 
     const { subject, gradeClass } = req.params as { subject: string; gradeClass: string };
+    const categoryParam = (req.query.category as string)?.toLowerCase().trim();
+    const topicParam = (req.query.topic as string)?.toLowerCase().trim();
 
     if (!subject || !gradeClass) {
       res.status(400).json({ message: "Missing params" });
+      return;
     }
 
-    if (!mongoose.Types.ObjectId.isValid(subject)) {
-      res.status(400).json({ message: "Invalid subject id" });
+    const subjectDoc = await resolveSubject(subject);
+    if (!subjectDoc) {
+      res.status(404).json({ message: "Subject not found" });
+      return;
     }
 
-    const subjectId = new mongoose.Types.ObjectId(subject);
+    const subjectId = subjectDoc._id as mongoose.Types.ObjectId;
     const userId = req.user?.id;
-    const categories = [
-      "grammar",
-      "comprehension",
-      "vocabulary",
-      "oral",
-      "writing",
-    ];
 
-    // ✅ 3. FETCH QUESTIONS
-    const result = await AssessmentQuestion.aggregate([
-      {
-        $match: {
-          subject: subjectId, // ⚠️ if using string, else change to subjectId
+    console.log(`[getAssessmentQuestions] subject=${subject}, gradeClass=${gradeClass}, category=${categoryParam}, topic=${topicParam}`);
+
+    let questions: any[] = [];
+    let assessmentType: "initial" | "category" | "topic" = "initial";
+    let topicInstanceIds: mongoose.Types.ObjectId[] = [];
+
+    if (topicParam) {
+      // Topic-level assessment: 15 questions from specific topic
+      assessmentType = "topic";
+      const topicDoc = await Topic.findOne({ slug: topicParam, subject: subjectId }).lean();
+      if (!topicDoc) {
+        res.status(404).json({ message: "Topic not found" });
+        return;
+      }
+
+      const topicId = (topicDoc as any)._id as mongoose.Types.ObjectId;
+
+      const instances = await TopicInstance.find({
+        topic: topicId,
+        subject: subjectId,
+        class: gradeClass.toLowerCase(),
+      }).lean();
+
+      if (!instances.length) {
+        res.status(404).json({ message: "No topic instances found for this class" });
+        return;
+      }
+
+      const instanceIds = instances.map((i) => i._id);
+      topicInstanceIds = instanceIds as mongoose.Types.ObjectId[];
+
+      questions = await sampleQuestionsWithDifficulty(
+        {
+          subject: subjectId,
           class: gradeClass.toLowerCase(),
-          category: { $in: categories },
+          topicInstanceId: { $in: instanceIds },
         },
-      },
-      {
-        $facet: {
-          grammar: [
-            { $match: { category: "grammar" } },
-            { $sample: { size: 5 } },
-          ],
-          comprehension: [
-            { $match: { category: "comprehension" } },
-            { $sample: { size: 5 } },
-          ],
-          vocabulary: [
-            { $match: { category: "vocabulary" } },
-            { $sample: { size: 5 } },
-          ],
-          oral: [{ $match: { category: "oral" } }, { $sample: { size: 5 } }],
-          writing: [
-            { $match: { category: "writing" } },
-            { $sample: { size: 5 } },
-          ],
+        15,
+        gradeClass,
+      );
+    } else if (categoryParam) {
+      // Category-level assessment: 20 questions from specific category
+      assessmentType = "category";
+      questions = await sampleQuestionsWithDifficulty(
+        {
+          subject: subjectId,
+          class: gradeClass.toLowerCase(),
+          category: categoryParam,
         },
-      },
-      {
-        $project: {
-          questions: {
-            $concatArrays: [
-              "$grammar",
-              "$comprehension",
-              "$vocabulary",
-              "$oral",
-              "$writing",
-            ],
+        20,
+        gradeClass,
+      );
+    } else {
+      // General/initial assessment: 5 questions per category (25 total)
+      const categories = ["grammar", "comprehension", "vocabulary", "oral", "writing"];
+      const result = await AssessmentQuestion.aggregate([
+        {
+          $match: {
+            subject: subjectId,
+            class: gradeClass.toLowerCase(),
+            category: { $in: categories },
           },
         },
-      },
-    ]);
-
-    const questions = result[0]?.questions || [];
-
-    if (!questions.length) {
-      res.status(404).json({
-        message: "No questions found",
-      });
+        {
+          $facet: {
+            grammar: [{ $match: { category: "grammar" } }, { $sample: { size: 5 } }],
+            comprehension: [{ $match: { category: "comprehension" } }, { $sample: { size: 5 } }],
+            vocabulary: [{ $match: { category: "vocabulary" } }, { $sample: { size: 5 } }],
+            oral: [{ $match: { category: "oral" } }, { $sample: { size: 5 } }],
+            writing: [{ $match: { category: "writing" } }, { $sample: { size: 5 } }],
+          },
+        },
+        {
+          $project: {
+            questions: {
+              $concatArrays: ["$grammar", "$comprehension", "$vocabulary", "$oral", "$writing"],
+            },
+          },
+        },
+      ]);
+      questions = result[0]?.questions || [];
     }
 
-    // ✅ 4. EXTRACT IDS
+    if (!questions.length) {
+      res.status(404).json({ message: "No questions found" });
+      return;
+    }
+
+    console.log(`[getAssessmentQuestions] fetched ${questions.length} questions`);
+    console.log(`[getAssessmentQuestions] categories: ${questions.map((q: any) => q.category).join(", ")}`);
+    console.log(`[getAssessmentQuestions] difficulties: ${questions.map((q: any) => q.difficulty).join(", ")}`);
+
     const questionIds = questions.map((q: any) => q._id);
 
-    const topicInstanceIds = [
-      ...new Map(
-        questions.map((q: any) => [
-          q.topicInstanceId.toString(),
-          q.topicInstanceId,
-        ]),
-      ).values(),
-    ];
+    if (!topicInstanceIds.length) {
+      topicInstanceIds = [
+        ...new Map(
+          questions.map((q: any) => [q.topicInstanceId.toString(), q.topicInstanceId]),
+        ).values(),
+      ];
+    }
 
-    // ✅ 5. CREATE ASSESSMENT
     const assessment = await Assessment.create({
       userId,
       subject: subjectId,
       class: gradeClass.toLowerCase(),
-      type: "initial",
-
+      type: assessmentType,
       topicInstances: topicInstanceIds,
       questions: questionIds,
       totalQuestions: questionIds.length,
-
       status: "in-progress",
       startedAt: new Date(),
-
       meta: {
         source: "system",
         difficultyMix: {
           easy: questions.filter((q: any) => q.difficulty === "easy").length,
-          medium: questions.filter((q: any) => q.difficulty === "medium")
-            .length,
+          medium: questions.filter((q: any) => q.difficulty === "medium").length,
           hard: questions.filter((q: any) => q.difficulty === "hard").length,
         },
       },
     });
 
-    // ✅ 6. RESPONSE
     res.status(200).json({
       assessmentId: assessment._id,
       total: questions.length,
@@ -151,7 +272,6 @@ export const getAssessmentQuestions: RequestHandler = async (req, res) => {
     });
   } catch (error: any) {
     console.error(error);
-
     res.status(500).json({
       message: error.message || "Internal Server Error",
     });
@@ -553,6 +673,20 @@ const subjectMastery = Math.round(totalMastery / allTopics.length);
       accuracy: t.performance.accuracy,
     });
 
+    // AI-generated content for weak topics
+    const onboardingProfile = await Onboarding.findOne({ userId }).lean();
+    const learningStyle = (onboardingProfile as any)?.learningProfile?.learningStyle ?? null;
+
+    const aiContent = await fetchAiContent(
+      weakTopics.map((t: any) => t.topic.slug),
+      subjectDoc?.name ?? "English Language",
+      assessment!.class,
+      learningStyle,
+    );
+
+    assessment!.aiContent = (aiContent?.generated_content as any[]) ?? null;
+    await assessment!.save();
+
     //Response
     res.status(200).json({
       message: "Assessment graded",
@@ -565,6 +699,7 @@ const subjectMastery = Math.round(totalMastery / allTopics.length);
         recommendedNextTopic,
         explanation,
       },
+      aiContent: aiContent?.generated_content ?? null,
     });
   } catch (error) {
     console.error(error);

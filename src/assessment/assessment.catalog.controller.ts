@@ -314,6 +314,7 @@ export const getSubjectInsight: RequestHandler = async (req, res) => {
       strongTopics,
       recommendedNextTopic,
       explanation,
+      aiContent: assessment.aiContent ?? null,
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message || "Internal Server Error" });
