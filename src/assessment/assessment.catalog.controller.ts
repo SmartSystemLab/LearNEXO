@@ -221,14 +221,42 @@ export const getSubjectInsight: RequestHandler = async (req, res) => {
       }
     }
 
-    const assessment: any = await Assessment.findOne({
-      userId,
-      subject: subjectId,
-      class: klass,
-      status: "completed",
-    })
-      .sort({ completedAt: -1 })
-      .lean();
+    // Find the latest assessment. If a category is requested, find the latest
+    // assessment whose topic instances belong to that category.
+    let assessment: any;
+    if (categoryParam) {
+      const { topicInstanceIds: categoryInstanceIds } = await getTopicInstanceIdsFor(
+        subjectId,
+        klass,
+        categoryParam,
+      );
+      const categoryInstanceIdSet = new Set(categoryInstanceIds.map((id) => id.toString()));
+
+      // Get all completed assessments for this subject+class, newest first
+      const subjectAssessments = await Assessment.find({
+        userId,
+        subject: subjectId,
+        class: klass,
+        status: "completed",
+      })
+        .sort({ completedAt: -1 })
+        .lean();
+
+      // Find the first assessment that has at least one topic instance in this category
+      assessment = subjectAssessments.find((a: any) => {
+        const instanceIds = a.topicInstances || [];
+        return instanceIds.some((id: any) => categoryInstanceIdSet.has(id.toString()));
+      });
+    } else {
+      assessment = await Assessment.findOne({
+        userId,
+        subject: subjectId,
+        class: klass,
+        status: "completed",
+      })
+        .sort({ completedAt: -1 })
+        .lean();
+    }
 
     if (!assessment || !assessment.result) {
       res.status(200).json({ hasInsight: false });

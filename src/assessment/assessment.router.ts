@@ -7,7 +7,13 @@ import {
   deleteQuestion,
   getAssessmentQuestions,
   getQuestionsByTopic,
-  submitAssessment
+  submitAssessment,
+  getAssessmentHistory,
+  getAssessmentInsightById,
+  getAssessmentCorrections,
+  getAssessmentReport,
+  getAnalytics,
+  getRecommendedContent,
 } from "./assessment.controller";
 import { verifyJwt } from "../middleware/verifyJwt";
 
@@ -292,6 +298,240 @@ assessmentRoute.patch("/questions/:questionNumber", updateQuestion);
  *                   items:
  *                     type: object
  */
+/**
+ * @openapi
+ * /assessment/history:
+ *   get:
+ *     tags:
+ *       - Assessment
+ *     summary: Get assessment history
+ *     description: Returns all completed assessments for the authenticated user with titles, scores, and dates.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of completed assessments
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 history:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       assessmentId:
+ *                         type: string
+ *                       subject:
+ *                         type: string
+ *                       class:
+ *                         type: string
+ *                       type:
+ *                         type: string
+ *                       score:
+ *                         type: number
+ *                       completedAt:
+ *                         type: string
+ *                         format: date-time
+ *                       title:
+ *                         type: string
+ *                         example: "English — Comprehension"
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.get("/history", verifyJwt, getAssessmentHistory);
+
+/**
+ * @openapi
+ * /assessment/{assessmentId}/insight:
+ *   get:
+ *     tags:
+ *       - Assessment
+ *     summary: Get insight for a specific assessment
+ *     description: Returns weak/strong topics, recommendations, and AI content for a specific completed assessment.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assessmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "64f1a2b3c9d4e5f678901234"
+ *     responses:
+ *       200:
+ *         description: Assessment insight
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hasInsight:
+ *                   type: boolean
+ *                 score:
+ *                   type: number
+ *                 weakTopics:
+ *                   type: array
+ *                 strongTopics:
+ *                   type: array
+ *                 recommendedNextTopic:
+ *                   type: object
+ *                 explanation:
+ *                   type: string
+ *                 recommendations:
+ *                   type: array
+ *                 aiContent:
+ *                   type: array
+ *       404:
+ *         description: Assessment not found or not completed
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.get("/:assessmentId/insight", verifyJwt, getAssessmentInsightById);
+
+/**
+ * @openapi
+ * /assessment/{assessmentId}/corrections:
+ *   get:
+ *     tags:
+ *       - Assessment
+ *     summary: Get question corrections for an assessment
+ *     description: Returns each question with the user's answer, correct answer, and explanation.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assessmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Corrections list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 assessmentId:
+ *                   type: string
+ *                 totalQuestions:
+ *                   type: number
+ *                 attempted:
+ *                   type: number
+ *                 corrections:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       questionNumber:
+ *                         type: number
+ *                       question:
+ *                         type: string
+ *                       userAnswer:
+ *                         type: string
+ *                       correctAnswer:
+ *                         type: string
+ *                       isCorrect:
+ *                         type: boolean
+ *                       explanation:
+ *                         type: string
+ *       404:
+ *         description: Assessment not found
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.get("/:assessmentId/corrections", verifyJwt, getAssessmentCorrections);
+
+/**
+ * @openapi
+ * /assessment/{assessmentId}/report:
+ *   get:
+ *     tags:
+ *       - Assessment
+ *     summary: Get full assessment report
+ *     description: Bundles insight, corrections, and recommendations into a single report.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: assessmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Full report
+ *       404:
+ *         description: Assessment not found or not completed
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.get("/:assessmentId/report", verifyJwt, getAssessmentReport);
+
+/**
+ * @openapi
+ * /assessment/analytics:
+ *   get:
+ *     tags:
+ *       - Analytics
+ *     summary: Get learning analytics
+ *     description: Returns class mastery, subject progress over time, and topic mastery comparison charts data.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Analytics data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 classMastery:
+ *                   type: object
+ *                 subjectProgress:
+ *                   type: object
+ *                 topicComparison:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.get("/analytics", verifyJwt, getAnalytics);
+
+/**
+ * @openapi
+ * /assessment/courses:
+ *   get:
+ *     tags:
+ *       - Courses
+ *     summary: Get recommended learning content
+ *     description: Returns AI-recommended learning materials grouped by subject.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Recommended content
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 recent:
+ *                   type: array
+ *                 bySubject:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.get("/courses", verifyJwt, getRecommendedContent);
+
 assessmentRoute.get("/:subject/:gradeClass",verifyJwt, getAssessmentQuestions) ;
 
 /**
