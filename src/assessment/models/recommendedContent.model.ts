@@ -1,3 +1,50 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     RecommendedContent:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         assessmentId:
+ *           type: string
+ *         subject:
+ *           type: string
+ *         topic:
+ *           type: string
+ *         category:
+ *           type: string
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         type:
+ *           type: string
+ *           enum: [video, audio, text, interactive]
+ *         url:
+ *           type: string
+ *           nullable: true
+ *         coverImage:
+ *           type: string
+ *           nullable: true
+ *         source:
+ *           type: string
+ *           enum: [ai, manual]
+ *           default: ai
+ *         priority:
+ *           type: number
+ *           default: 0
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import mongoose, { Document, Types, Schema } from "mongoose";
 
 export interface IRecommendedContent extends Document {

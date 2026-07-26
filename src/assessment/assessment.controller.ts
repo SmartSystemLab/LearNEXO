@@ -624,44 +624,63 @@ export const getAssessmentCorrections: RequestHandler = async (req, res) => {
       return;
     }
 
+    const submittedAnswers = assessment.submittedAnswers || [];
+
+    // Collect all question IDs referenced in submittedAnswers (not just assessment.questions)
+    const answerQuestionIds = submittedAnswers
+      .map((ans: any) => ans.questionId)
+      .filter(Boolean)
+      .map((id: any) => id.toString());
+
     const questionIds = assessment.questions || [];
+    const allIds = [...new Set([...questionIds.map((id: any) => id.toString()), ...answerQuestionIds])];
+
     const questions = await AssessmentQuestion.find({
-      _id: { $in: questionIds },
+      _id: { $in: allIds },
     }).lean();
 
-    const questionMap = new Map();
+    const questionMap = new Map<string, any>();
     questions.forEach((q: any) => {
       questionMap.set(q._id.toString(), q);
     });
 
-    const submittedAnswers = assessment.submittedAnswers || [];
+    const corrections = await Promise.all(
+      submittedAnswers.map(async (ans: any, index: number) => {
+        const rawId = ans.questionId;
+        const qid = rawId ? rawId.toString() : "";
+        let question = questionMap.get(qid);
 
-    const corrections = submittedAnswers.map((ans: any, index: number) => {
-      const question = questionMap.get(ans.questionId?.toString());
-      if (!question) {
+        // Fallback: query directly if not in map
+        if (!question && qid) {
+          question = await AssessmentQuestion.findById(qid).lean();
+          if (question) questionMap.set(qid, question);
+        }
+
+        if (!question) {
+          return {
+            questionNumber: index + 1,
+            question: "Question not found",
+            userAnswer: ans.selected,
+            correctAnswer: "",
+            isCorrect: false,
+            explanation: "",
+          };
+        }
+
+        const isCorrect =
+          question.answer?.toLowerCase().trim() === ans.selected?.toLowerCase().trim();
+
         return {
           questionNumber: index + 1,
-          question: "Question not found",
+          question: question.question,
+          options: question.options,
           userAnswer: ans.selected,
-          correctAnswer: "",
-          isCorrect: false,
-          explanation: "",
+          correctAnswer: question.answer,
+          isCorrect,
+          explanation: question.explanation || `Correct answer is ${question.answer?.toUpperCase()}.`,
         };
-      }
-
-      const isCorrect =
-        question.answer?.toLowerCase().trim() === ans.selected?.toLowerCase().trim();
-
-      return {
-        questionNumber: index + 1,
-        question: question.question,
-        options: question.options,
-        userAnswer: ans.selected,
-        correctAnswer: question.answer,
-        isCorrect,
-        explanation: question.explanation || `Correct answer is ${question.answer?.toUpperCase()}.`,
-      };
-    });
+      }),
+    );
 
     res.status(200).json({
       assessmentId,
@@ -869,44 +888,63 @@ export const getAssessmentReport: RequestHandler = async (req, res) => {
       scopeLabel,
     );
 
+    const submittedAnswers = assessment.submittedAnswers || [];
+
+    // Collect all question IDs referenced in submittedAnswers (not just assessment.questions)
+    const answerQuestionIds = submittedAnswers
+      .map((ans: any) => ans.questionId)
+      .filter(Boolean)
+      .map((id: any) => id.toString());
+
     const questionIds = assessment.questions || [];
+    const allIds = [...new Set([...questionIds.map((id: any) => id.toString()), ...answerQuestionIds])];
+
     const questions = await AssessmentQuestion.find({
-      _id: { $in: questionIds },
+      _id: { $in: allIds },
     }).lean();
 
-    const questionMap = new Map();
+    const questionMap = new Map<string, any>();
     questions.forEach((q: any) => {
       questionMap.set(q._id.toString(), q);
     });
 
-    const submittedAnswers = assessment.submittedAnswers || [];
+    const corrections = await Promise.all(
+      submittedAnswers.map(async (ans: any, index: number) => {
+        const rawId = ans.questionId;
+        const qid = rawId ? rawId.toString() : "";
+        let question = questionMap.get(qid);
 
-    const corrections = submittedAnswers.map((ans: any, index: number) => {
-      const question = questionMap.get(ans.questionId?.toString());
-      if (!question) {
+        // Fallback: query directly if not in map
+        if (!question && qid) {
+          question = await AssessmentQuestion.findById(qid).lean();
+          if (question) questionMap.set(qid, question);
+        }
+
+        if (!question) {
+          return {
+            questionNumber: index + 1,
+            question: "Question not found",
+            userAnswer: ans.selected,
+            correctAnswer: "",
+            isCorrect: false,
+            explanation: "",
+          };
+        }
+
+        const isCorrect =
+          question.answer?.toLowerCase().trim() === ans.selected?.toLowerCase().trim();
+
         return {
           questionNumber: index + 1,
-          question: "Question not found",
+          question: question.question,
+          options: question.options,
           userAnswer: ans.selected,
-          correctAnswer: "",
-          isCorrect: false,
-          explanation: "",
+          correctAnswer: question.answer,
+          isCorrect,
+          explanation: question.explanation || `Correct answer is ${question.answer?.toUpperCase()}.`,
         };
-      }
-
-      const isCorrect =
-        question.answer?.toLowerCase().trim() === ans.selected?.toLowerCase().trim();
-
-      return {
-        questionNumber: index + 1,
-        question: question.question,
-        options: question.options,
-        userAnswer: ans.selected,
-        correctAnswer: question.answer,
-        isCorrect,
-        explanation: question.explanation || `Correct answer is ${question.answer?.toUpperCase()}.`,
-      };
-    });
+      }),
+    );
 
     res.status(200).json({
       assessmentId: assessment._id.toString(),
@@ -1065,9 +1103,9 @@ for (const topic of topicDocs) {
     assessment!.score = scorePercent;
 
     assessment!.submittedAnswers = answers.map((a: any) => ({
-      questionNumber: a.questionNumber,
+      questionId: a.questionId,
       selected: a.selected,
-      isCorrect: questionMap.get(a.questionNumber)?.answer === a.selected,
+      isCorrect: questionMap.get(a.questionId)?.answer === a.selected,
     }));
 
     assessment!.result = {

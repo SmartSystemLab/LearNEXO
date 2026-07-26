@@ -1,3 +1,99 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Onboarding:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         user:
+ *           type: string
+ *           description: ObjectId ref to Auth
+ *         userId:
+ *           type: string
+ *         dateOfBirth:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         studentClass:
+ *           type: string
+ *           nullable: true
+ *         gender:
+ *           type: string
+ *           enum: [male, female, other]
+ *           nullable: true
+ *         stateOfOrigin:
+ *           type: string
+ *           nullable: true
+ *         residentialAddress:
+ *           type: string
+ *           nullable: true
+ *         town:
+ *           type: string
+ *           nullable: true
+ *         state:
+ *           type: string
+ *           nullable: true
+ *         schoolName:
+ *           type: string
+ *           nullable: true
+ *         schoolAddress:
+ *           type: string
+ *           nullable: true
+ *         learningProfile:
+ *           type: object
+ *           properties:
+ *             learningStyle:
+ *               type: string
+ *               enum: [visual, auditory, reading, kinesthetic]
+ *               nullable: true
+ *             confidence:
+ *               type: number
+ *               nullable: true
+ *             cognitiveScore:
+ *               type: number
+ *               nullable: true
+ *             recommendedFormats:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             explanation:
+ *               type: string
+ *               nullable: true
+ *             risk_of_misclassification:
+ *               type: string
+ *               enum: [low, medium, high]
+ *               nullable: true
+ *             lastUpdated:
+ *               type: string
+ *               format: date-time
+ *               nullable: true
+ *         pastExam:
+ *           type: object
+ *           properties:
+ *             firstTerm:
+ *               type: string
+ *               nullable: true
+ *             secondTerm:
+ *               type: string
+ *               nullable: true
+ *             thirdTerm:
+ *               type: string
+ *               nullable: true
+ *         photo:
+ *           type: string
+ *           nullable: true
+ *         language:
+ *           type: string
+ *           nullable: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import { model, Schema } from "mongoose";
 import paginator from "mongoose-paginate-v2";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";

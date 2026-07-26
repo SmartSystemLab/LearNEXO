@@ -1,3 +1,137 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Assessment:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         userId:
+ *           type: string
+ *           description: ObjectId ref to User
+ *         subject:
+ *           type: string
+ *           description: ObjectId ref to Subject
+ *         class:
+ *           type: string
+ *           example: jss2
+ *         type:
+ *           type: string
+ *           enum: [initial, general, category, topic]
+ *         topicInstances:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: ObjectId[] ref to TopicInstance
+ *         questions:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: ObjectId[] ref to AssessmentQuestion
+ *         totalQuestions:
+ *           type: number
+ *           minimum: 1
+ *         status:
+ *           type: string
+ *           enum: [in-progress, completed, abandoned]
+ *           default: in-progress
+ *         startedAt:
+ *           type: string
+ *           format: date-time
+ *         completedAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         duration:
+ *           type: number
+ *           nullable: true
+ *           description: Seconds elapsed
+ *         score:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 100
+ *           nullable: true
+ *         submittedAnswers:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               questionId:
+ *                 type: string
+ *               selected:
+ *                 type: string
+ *               isCorrect:
+ *                 type: boolean
+ *                 nullable: true
+ *         result:
+ *           type: object
+ *           properties:
+ *             attempted:
+ *               type: number
+ *             correct:
+ *               type: number
+ *             wrong:
+ *               type: number
+ *             unanswered:
+ *               type: number
+ *             topicPerformance:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   topicInstanceId:
+ *                     type: string
+ *                   accuracy:
+ *                     type: number
+ *                   total:
+ *                     type: number
+ *                   correct:
+ *                     type: number
+ *                   wrong:
+ *                     type: number
+ *             weakTopics:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             strongTopics:
+ *               type: array
+ *               items:
+ *                 type: string
+ *         aiContent:
+ *           type: array
+ *           items:
+ *             type: object
+ *           nullable: true
+ *         meta:
+ *           type: object
+ *           properties:
+ *             source:
+ *               type: string
+ *               enum: [system, user, recommendation]
+ *               default: system
+ *             difficultyMix:
+ *               type: object
+ *               properties:
+ *                 easy:
+ *                   type: number
+ *                   minimum: 0
+ *                   default: 0
+ *                 medium:
+ *                   type: number
+ *                   minimum: 0
+ *                   default: 0
+ *                 hard:
+ *                   type: number
+ *                   minimum: 0
+ *                   default: 0
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import mongoose, { Document, Types, Schema } from "mongoose";
 
 interface IAssessment extends Document {

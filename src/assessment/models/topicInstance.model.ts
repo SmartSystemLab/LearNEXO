@@ -1,3 +1,39 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     TopicInstance:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         topic:
+ *           type: string
+ *           description: ObjectId ref to Topic
+ *         subject:
+ *           type: string
+ *           description: ObjectId ref to Subject
+ *         class:
+ *           type: string
+ *           example: jss2
+ *         difficultyLevel:
+ *           type: string
+ *           enum: [beginner, intermediate, advanced]
+ *         order:
+ *           type: number
+ *         estimatedDuration:
+ *           type: number
+ *           nullable: true
+ *         isCore:
+ *           type: boolean
+ *           default: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface ITopicInstance extends Document {

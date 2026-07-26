@@ -1,3 +1,48 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UserTopicMastery:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         userId:
+ *           type: string
+ *         topicInstanceId:
+ *           type: string
+ *         masteryScore:
+ *           type: number
+ *           default: 50
+ *           minimum: 0
+ *           maximum: 100
+ *         attempts:
+ *           type: number
+ *           default: 0
+ *         lastAccuracy:
+ *           type: number
+ *           nullable: true
+ *         weakStreak:
+ *           type: number
+ *           default: 0
+ *         strongStreak:
+ *           type: number
+ *           default: 0
+ *         status:
+ *           type: string
+ *           enum: [weak, improving, mastered]
+ *           default: improving
+ *         lastAssessedAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IUserTopicMastery extends Document {

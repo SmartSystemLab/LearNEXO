@@ -1,3 +1,53 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     AssessmentQuestion:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         questionNumber:
+ *           type: string
+ *           example: ENG001
+ *         subject:
+ *           type: string
+ *           description: ObjectId ref to Subject
+ *         class:
+ *           type: string
+ *           example: jss2
+ *         topicInstanceId:
+ *           type: string
+ *           description: ObjectId ref to TopicInstance
+ *         question:
+ *           type: string
+ *         options:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               key:
+ *                 type: string
+ *               text:
+ *                 type: string
+ *         answer:
+ *           type: string
+ *         difficulty:
+ *           type: string
+ *           enum: [easy, medium, hard]
+ *         category:
+ *           type: string
+ *           enum: [grammar, comprehension, vocabulary, oral, writing]
+ *         explanation:
+ *           type: string
+ *           nullable: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IAssessmentQuestion extends Document {

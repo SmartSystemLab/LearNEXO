@@ -1,3 +1,42 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     QuestionnaireQuestion:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         questionNumber:
+ *           type: string
+ *         question:
+ *           type: string
+ *         options:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               key:
+ *                 type: string
+ *               text:
+ *                 type: string
+ *               trait:
+ *                 type: string
+ *                 enum: [visual, auditory, reading, kinesthetic, neutral]
+ *                 nullable: true
+ *         category:
+ *           type: string
+ *           enum: [learning_style, cognitive]
+ *         answer:
+ *           type: string
+ *           nullable: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IQuestion extends Document {

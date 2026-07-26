@@ -1,3 +1,35 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Topic:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *           example: grammar
+ *         subject:
+ *           type: string
+ *           description: ObjectId ref to Subject
+ *         slug:
+ *           type: string
+ *           example: english-grammar
+ *         description:
+ *           type: string
+ *           nullable: true
+ *         category:
+ *           type: string
+ *           example: grammar
+ *           nullable: true
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface ITopic extends Document {
