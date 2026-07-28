@@ -4,6 +4,7 @@ import http from "http";
 import path from "path";
 import { config } from "dotenv";
 import swaggerUi from "swagger-ui-express";
+import mongoose from "mongoose";
 
 import Logging from "./middleware/logging";
 import { errorResponse, notFound } from "./middleware/errorHandler";
@@ -75,6 +76,17 @@ app.get("/", (req: Request, res: Response<ResponseInterface>) => {
 /**
  * Routes
  */
+app.use("/api", (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    res.status(503).json({
+      message: "Database temporarily unavailable. Please try again shortly.",
+      status: false,
+    });
+    return;
+  }
+  next();
+});
+
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/questionnaire", questionnaireRoute);
 app.use("/api/v1/assessment/catalog", catalogRoute);

@@ -13,6 +13,7 @@ import {
   getAssessmentCorrections,
   getAssessmentReport,
   getAnalytics,
+  getBktTraces,
   getRecommendedContent,
 } from "./assessment.controller";
 import { verifyJwt } from "../middleware/verifyJwt";
@@ -502,6 +503,26 @@ assessmentRoute.get("/:assessmentId/report", verifyJwt, getAssessmentReport);
  *         description: Internal server error
  */
 assessmentRoute.get("/analytics", verifyJwt, getAnalytics);
+
+/**
+ * @openapi
+ * /assessment/bkt-traces:
+ *   get:
+ *     tags:
+ *       - Analytics
+ *     summary: Get mastery traces over time
+ *     description: Returns per-topic mastery history grouped by subject, derived from completed assessments.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Mastery traces grouped by subject
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+assessmentRoute.get("/bkt-traces", verifyJwt, getBktTraces);
 
 /**
  * @openapi

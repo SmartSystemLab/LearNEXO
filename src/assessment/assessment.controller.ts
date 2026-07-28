@@ -10,11 +10,26 @@ import { buildRecommendation, resolveSubject, computeAverageMastery, getTopicIns
 import { SUBJECT_CATALOG } from "./assessment.constants";
 import Onboarding from "../auth/model/onboarding.model";
 import RecommendedContent from "./models/recommendedContent.model";
+import { bktUpdate, bktProbabilityToMastery, BKT_DEFAULTS } from "./bkt";
 import axios from "axios";
 
 
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL;
+
+const VALID_AI_STYLES = new Set(["visual", "auditory", "kinesthetic"]);
+
+function normalizeLearningStyle(style: string | null): string {
+  const s = (style || "").toLowerCase().trim();
+  return VALID_AI_STYLES.has(s) ? s : "visual";
+}
+
+function normalizeSubjectName(name: string): string {
+  const n = name.toLowerCase().trim();
+  if (n === "english" || n === "english language") return "English Language";
+  if (n === "mathematics" || n === "maths" || n === "math") return "Mathematics";
+  return name;
+}
 
 async function fetchAiContent(
   weakTopicSlugs: string[],
@@ -30,25 +45,35 @@ async function fetchAiContent(
     learning_stage: "foundation",
   }));
 
-  try {
-    const response = await axios.post(
-      `${AI_SERVICE_URL}/content`,
-      {
-        mode: "multi_topic",
-        topics,
-        subject: subjectName,
-        class_level: classLevel.toUpperCase(),
-        learning_style: learningStyle || "visual",
-        content_depth: "core",
-        focus_reason: "general_assessment",
-      },
-      { timeout: 30000 },
-    );
-    return response.data as Record<string, unknown>;
-  } catch (err) {
-    console.error("[AI Content] Failed to fetch:", (err as Error).message);
-    return null;
+  const payload = {
+    mode: "multi_topic",
+    topics,
+    subject: normalizeSubjectName(subjectName),
+    class_level: classLevel.toUpperCase(),
+    learning_style: normalizeLearningStyle(learningStyle),
+    content_depth: "core",
+    focus_reason: "general_assessment",
+  };
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const response = await axios.post(`${AI_SERVICE_URL}/content`, payload, {
+        timeout: 180000,
+      });
+      return response.data as Record<string, unknown>;
+    } catch (err) {
+      const axErr = err as any;
+      const status = axErr?.response?.status;
+      const body = axErr?.response?.data
+        ? JSON.stringify(axErr.response.data).slice(0, 500)
+        : "";
+      console.error(
+        `[AI Content] attempt ${attempt}/2 failed: ${axErr.message}${status ? ` status=${status}` : ""}${body ? ` body=${body}` : ""}`,
+      );
+    }
   }
+
+  return null;
 }
 
 export const bulkUploadQuestions: RequestHandler = async (req, res) => {
@@ -563,21 +588,28 @@ export const getAssessmentInsightById: RequestHandler = async (req, res) => {
       accuracy: tp.accuracy,
     }));
 
-    const buildTopicList = (ids: any[]) =>
-      ids.map((id) => {
-        const key = id.toString();
-        const info = topicInfoMap.get(key);
-        const tp = topicPerformance.find((t: any) => t.topicInstanceId.toString() === key);
-        return {
-          topicInstanceId: key,
-          name: info?.name ?? "Unknown",
-          slug: info?.slug ?? "",
-          accuracy: tp?.accuracy ?? 0,
-        };
-      });
+    const buildTopicList = async (ids: any[]) =>
+      Promise.all(
+        ids.map(async (id) => {
+          const key = id.toString();
+          const info = topicInfoMap.get(key);
+          const tp = topicPerformance.find((t: any) => t.topicInstanceId.toString() === key);
+          const mastery = await UserTopicMastery.findOne({
+            userId,
+            topicInstanceId: id,
+          }).select("bktProbability").lean();
+          return {
+            topicInstanceId: key,
+            name: info?.name ?? "Unknown",
+            slug: info?.slug ?? "",
+            accuracy: tp?.accuracy ?? 0,
+            bktProbability: (mastery as any)?.bktProbability ?? 0.1,
+          };
+        }),
+      );
 
-    const weakTopics = buildTopicList(weakIds);
-    const strongTopics = buildTopicList(strongIds);
+    const weakTopics = await buildTopicList(weakIds);
+    const strongTopics = await buildTopicList(strongIds);
 
     const { recommendedNextTopic, explanation, recommendations } = buildRecommendation(
       topicSummaries,
@@ -755,10 +787,52 @@ export const getAnalytics: RequestHandler = async (req, res) => {
     // Get the last two assessments per subject
     const topicComparison: Record<
       string,
-      { topic: string; previousMastery: number; currentMastery: number }[]
+      { topic: string; previousMastery: number; currentMastery: number; bktProbability: number }[]
     > = {};
 
     const subjectIds = [...new Set(assessments.map((a: any) => a.subject?._id?.toString()).filter(Boolean))];
+
+    // 4. Category Mastery — average mastery per topic category per subject
+    const allUserMastery = await UserTopicMastery.find({ userId })
+      .select("topicInstanceId bktProbability")
+      .lean();
+    const masteryByTi = new Map<string, number>(
+      allUserMastery.map((m: any) => [
+        m.topicInstanceId.toString(),
+        m.bktProbability ?? 0.1,
+      ]),
+    );
+
+    const categoryMastery: Record<string, { category: string; mastery: number }[]> = {};
+
+    for (const subjectIdStr of subjectIds) {
+      const subjectName =
+        (assessments.find((a: any) => a.subject?._id?.toString() === subjectIdStr) as any)
+          ?.subject?.name ?? "unknown";
+
+      const tis = await TopicInstance.find({ subject: subjectIdStr })
+        .populate("topic", "category")
+        .lean();
+
+      const byCategory = new Map<string, number[]>();
+      for (const ti of tis) {
+        const cat = (ti as any).topic?.category;
+        if (!cat) continue;
+        const prob = masteryByTi.get((ti._id as mongoose.Types.ObjectId).toString());
+        if (prob === undefined) continue;
+        if (!byCategory.has(cat)) byCategory.set(cat, []);
+        byCategory.get(cat)!.push(prob);
+      }
+
+      categoryMastery[subjectName] = [...byCategory.entries()].map(
+        ([category, probs]) => ({
+          category,
+          mastery: Math.round(
+            (probs.reduce((sum, p) => sum + p, 0) / probs.length) * 100,
+          ),
+        }),
+      );
+    }
 
     for (const subjectIdStr of subjectIds) {
       const subjectAssessments = assessments.filter(
@@ -805,6 +879,10 @@ export const getAnalytics: RequestHandler = async (req, res) => {
           topic: topicName,
           previousMastery,
           currentMastery: tp.accuracy,
+          bktProbability: (await UserTopicMastery.findOne({
+            userId,
+            topicInstanceId: tp.topicInstanceId,
+          }).select("bktProbability").lean())?.bktProbability ?? 0.1,
         });
       }
     }
@@ -813,7 +891,95 @@ export const getAnalytics: RequestHandler = async (req, res) => {
       classMastery,
       subjectProgress,
       topicComparison,
+      categoryMastery,
     });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message || "Internal Server Error" });
+  }
+};
+
+export const getBktTraces: RequestHandler = async (req, res) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const userId = req.user.id;
+
+    const assessments = await Assessment.find({
+      userId,
+      status: "completed",
+      "result.topicPerformance.bktProbability": { $exists: true },
+    })
+      .sort({ completedAt: 1 })
+      .select("subject completedAt result.topicPerformance")
+      .populate("subject", "name")
+      .lean();
+
+    const topicInstanceIds = [
+      ...new Set(
+        assessments.flatMap((a: any) =>
+          (a.result?.topicPerformance ?? [])
+            .filter((tp: any) => tp.bktProbability !== undefined && tp.bktProbability !== null)
+            .map((tp: any) => tp.topicInstanceId.toString()),
+        ),
+      ),
+    ];
+
+    const topicInstances = await TopicInstance.find({
+      _id: { $in: topicInstanceIds },
+    })
+      .populate("topic", "name")
+      .lean();
+
+    const topicNameMap = new Map<string, string>();
+    topicInstances.forEach((ti: any) => {
+      topicNameMap.set(
+        (ti._id as mongoose.Types.ObjectId).toString(),
+        ti.topic?.name ?? "Unknown",
+      );
+    });
+
+    const traces: Record<
+      string,
+      { topic: string; history: { date: string; mastery: number }[] }[]
+    > = {};
+
+    const bySubjectTopic = new Map<string, Map<string, { date: string; mastery: number }[]>>();
+
+    for (const a of assessments as any[]) {
+      const subjectName = a.subject?.name ?? "unknown";
+      const date = a.completedAt
+        ? new Date(a.completedAt).toISOString().split("T")[0]
+        : "";
+
+      for (const tp of a.result?.topicPerformance ?? []) {
+        if (tp.bktProbability === undefined || tp.bktProbability === null) continue;
+
+        const tiId = tp.topicInstanceId.toString();
+        if (!bySubjectTopic.has(subjectName)) {
+          bySubjectTopic.set(subjectName, new Map());
+        }
+        const subjectMap = bySubjectTopic.get(subjectName)!;
+        if (!subjectMap.has(tiId)) {
+          subjectMap.set(tiId, []);
+        }
+        subjectMap.get(tiId)!.push({
+          date,
+          mastery: Math.round(tp.bktProbability * 100),
+        });
+      }
+    }
+
+    for (const [subjectName, topicMap] of bySubjectTopic) {
+      traces[subjectName] = [...topicMap.entries()].map(([tiId, history]) => ({
+        topic: topicNameMap.get(tiId) ?? "Unknown",
+        history,
+      }));
+    }
+
+    res.status(200).json({ traces });
   } catch (error: any) {
     res.status(500).json({ message: error.message || "Internal Server Error" });
   }
@@ -865,21 +1031,28 @@ export const getAssessmentReport: RequestHandler = async (req, res) => {
       accuracy: tp.accuracy,
     }));
 
-    const buildTopicList = (ids: any[]) =>
-      ids.map((id) => {
-        const key = id.toString();
-        const info = topicInfoMap.get(key);
-        const tp = topicPerformance.find((t: any) => t.topicInstanceId.toString() === key);
-        return {
-          topicInstanceId: key,
-          name: info?.name ?? "Unknown",
-          slug: info?.slug ?? "",
-          accuracy: tp?.accuracy ?? 0,
-        };
-      });
+    const buildTopicList = async (ids: any[]) =>
+      Promise.all(
+        ids.map(async (id) => {
+          const key = id.toString();
+          const info = topicInfoMap.get(key);
+          const tp = topicPerformance.find((t: any) => t.topicInstanceId.toString() === key);
+          const mastery = await UserTopicMastery.findOne({
+            userId,
+            topicInstanceId: id,
+          }).select("bktProbability").lean();
+          return {
+            topicInstanceId: key,
+            name: info?.name ?? "Unknown",
+            slug: info?.slug ?? "",
+            accuracy: tp?.accuracy ?? 0,
+            bktProbability: (mastery as any)?.bktProbability ?? 0.1,
+          };
+        }),
+      );
 
-    const weakTopics = buildTopicList(weakIds);
-    const strongTopics = buildTopicList(strongIds);
+    const weakTopics = await buildTopicList(weakIds);
+    const strongTopics = await buildTopicList(strongIds);
 
     const { recommendedNextTopic, explanation, recommendations } = buildRecommendation(
       topicSummaries,
@@ -1132,24 +1305,59 @@ for (const topic of topicDocs) {
 
     await assessment!.save();
 
-    // Update user topic mastery
+    // Update user topic mastery using Bayesian Knowledge Tracing
 
     const userId = assessment!.userId;
 
+    const questionTopicMap = new Map<string, string>();
+    questions.forEach((q) => {
+      questionTopicMap.set(q._id!.toString(), q.topicInstanceId.toString());
+    });
+
+    const topicAnswers = new Map<string, boolean[]>();
+    for (const ans of answers) {
+      const topicId = questionTopicMap.get(ans.questionId);
+      if (!topicId) continue;
+      if (!topicAnswers.has(topicId)) {
+        topicAnswers.set(topicId, []);
+      }
+      topicAnswers.get(topicId)!.push(
+        questionMap.get(ans.questionId)?.answer.toLowerCase().trim() ===
+          ans.selected.toLowerCase().trim(),
+      );
+    }
+
+    const bktByTopic = new Map<string, number>();
+
     for (const topic of topicBreakdown) {
       const accuracy = topic.performance.accuracy;
+      const answerSequence = topicAnswers.get(topic.topicInstanceId.toString()) || [];
 
       const existingMastery = await UserTopicMastery.findOne({
         userId,
         topicInstanceId: topic.topicInstanceId,
       });
 
+      let prior = BKT_DEFAULTS.P_L0;
+      if (existingMastery) {
+        prior = existingMastery.bktProbability;
+      }
+
+      for (const isCorrect of answerSequence) {
+        prior = bktUpdate(prior, isCorrect);
+      }
+
+      const bktProb = prior;
+      const masteryScore = bktProbabilityToMastery(bktProb);
+      bktByTopic.set(topic.topicInstanceId.toString(), bktProb);
+
       if (!existingMastery) {
         await UserTopicMastery.create({
           userId,
           topicInstanceId: topic.topicInstanceId,
 
-          masteryScore: accuracy,
+          masteryScore,
+          bktProbability: bktProb,
           attempts: 1,
 
           lastAccuracy: accuracy,
@@ -1166,9 +1374,8 @@ for (const topic of topicDocs) {
         continue;
       }
 
-      existingMastery.masteryScore = Math.round(
-        existingMastery.masteryScore * 0.7 + accuracy * 0.3,
-      );
+      existingMastery.bktProbability = bktProb;
+      existingMastery.masteryScore = masteryScore;
 
       existingMastery.attempts += 1;
 
@@ -1198,6 +1405,15 @@ for (const topic of topicDocs) {
       existingMastery.lastAssessedAt = new Date();
 
       await existingMastery.save();
+    }
+
+    if (assessment!.result?.topicPerformance) {
+      for (const tp of assessment!.result.topicPerformance) {
+        const prob = bktByTopic.get(tp.topicInstanceId.toString());
+        if (prob !== undefined) {
+          tp.bktProbability = prob;
+        }
+      }
     }
 
     const userTopicMastery = await UserTopicMastery.find({
@@ -1248,86 +1464,99 @@ const subjectMastery = Math.round(totalMastery / allTopics.length);
       accuracy: t.performance.accuracy,
     });
 
-    // AI-generated content for weak topics
-    const onboardingProfile = await Onboarding.findOne({ userId }).lean();
-    const learningStyle = (onboardingProfile as any)?.learningProfile?.learningStyle ?? null;
-
-    const aiContent = await fetchAiContent(
-      weakTopics.map((t: any) => t.topic.slug),
-      subjectDoc?.name ?? "English Language",
-      assessment!.class,
-      learningStyle,
-    );
-
-    const generatedContent = (aiContent?.generated_content as any[]) ?? null;
-    assessment!.aiContent = generatedContent;
-
-    // Persist AI content to RecommendedContent collection
-    if (generatedContent && Array.isArray(generatedContent)) {
-      for (const item of generatedContent) {
-        const topicName = item.topic ?? "general";
-        const topicDoc = await Topic.findOne({ slug: topicName, subject: assessment!.subject }).lean();
-        const category = (topicDoc as any)?.category ?? "general";
-
-        const resources = item.resources ?? {};
-        const videos = resources.videos ?? [];
-        const materials = resources.materials ?? [];
-
-        // Save video recommendations
-        for (const video of videos) {
-          await RecommendedContent.findOneAndUpdate(
-            {
-              userId,
-              assessmentId: assessment!._id,
-              title: video.title,
-              type: "video",
-            },
-            {
-              userId,
-              assessmentId: assessment!._id,
-              subject: assessment!.subject,
-              topic: topicName,
-              category,
-              title: video.title,
-              description: item.explanation?.summary ?? "",
-              type: "video",
-              url: video.url,
-              source: "ai",
-              priority: item.priority ?? 0,
-            },
-            { upsert: true, new: true },
-          );
-        }
-
-        // Save text/reading material recommendations
-        for (const material of materials) {
-          await RecommendedContent.findOneAndUpdate(
-            {
-              userId,
-              assessmentId: assessment!._id,
-              title: material.title,
-              type: "text",
-            },
-            {
-              userId,
-              assessmentId: assessment!._id,
-              subject: assessment!.subject,
-              topic: topicName,
-              category,
-              title: material.title,
-              description: item.explanation?.summary ?? "",
-              type: "text",
-              url: material.url,
-              source: "ai",
-              priority: item.priority ?? 0,
-            },
-            { upsert: true, new: true },
-          );
-        }
-      }
-    }
-
     await assessment!.save();
+
+    // Fire AI content generation in the background so the submit response isn't blocked.
+    // The AI service can take 30s+ (cold start + sequential per-topic generation);
+    // content is persisted to the assessment + RecommendedContent when it arrives.
+    const assessmentObjectId = assessment!._id as mongoose.Types.ObjectId;
+    const subjectId = assessment!.subject;
+    const weakSlugs = weakTopics.map((t: any) => t.topic.slug);
+    const classLevel = assessment!.class;
+    const subjectName = subjectDoc?.name ?? "English Language";
+
+    void (async () => {
+      try {
+        const onboardingProfile = await Onboarding.findOne({ userId }).lean();
+        const learningStyle = (onboardingProfile as any)?.learningProfile?.learningStyle ?? null;
+
+        const aiContent = await fetchAiContent(
+          weakSlugs,
+          subjectName,
+          classLevel,
+          learningStyle,
+        );
+
+        const generatedContent = (aiContent?.generated_content as any[]) ?? null;
+        if (!generatedContent || !Array.isArray(generatedContent)) return;
+
+        await Assessment.findByIdAndUpdate(assessmentObjectId, {
+          $set: { aiContent: generatedContent },
+        });
+
+        for (const item of generatedContent) {
+          const topicName = item.topic ?? "general";
+          const topicDoc = await Topic.findOne({ slug: topicName, subject: subjectId }).lean();
+          const category = (topicDoc as any)?.category ?? "general";
+
+          const resources = item.resources ?? {};
+          const videos = resources.videos ?? [];
+          const materials = resources.materials ?? [];
+
+          for (const video of videos) {
+            await RecommendedContent.findOneAndUpdate(
+              {
+                userId,
+                assessmentId: assessmentObjectId,
+                title: video.title,
+                type: "video",
+              },
+              {
+                userId,
+                assessmentId: assessmentObjectId,
+                subject: subjectId,
+                topic: topicName,
+                category,
+                title: video.title,
+                description: item.explanation?.summary ?? "",
+                type: "video",
+                url: video.url,
+                source: "ai",
+                priority: item.priority ?? 0,
+              },
+              { upsert: true, new: true },
+            );
+          }
+
+          for (const material of materials) {
+            await RecommendedContent.findOneAndUpdate(
+              {
+                userId,
+                assessmentId: assessmentObjectId,
+                title: material.title,
+                type: "text",
+              },
+              {
+                userId,
+                assessmentId: assessmentObjectId,
+                subject: subjectId,
+                topic: topicName,
+                category,
+                title: material.title,
+                description: item.explanation?.summary ?? "",
+                type: "text",
+                url: material.url,
+                source: "ai",
+                priority: item.priority ?? 0,
+              },
+              { upsert: true, new: true },
+            );
+          }
+        }
+      } catch (err) {
+        console.error("[AI Content] Background generation failed:", err);
+      }
+    })();
 
     //Response
     res.status(200).json({
@@ -1341,7 +1570,7 @@ const subjectMastery = Math.round(totalMastery / allTopics.length);
         recommendedNextTopic,
         explanation,
       },
-      aiContent: aiContent?.generated_content ?? null,
+      aiContent: null,
     });
   } catch (error) {
     console.error(error);

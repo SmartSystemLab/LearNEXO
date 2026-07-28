@@ -16,6 +16,11 @@
  *           default: 50
  *           minimum: 0
  *           maximum: 100
+ *         bktProbability:
+ *           type: number
+ *           default: 0.1
+ *           minimum: 0
+ *           maximum: 1
  *         attempts:
  *           type: number
  *           default: 0
@@ -50,6 +55,7 @@ export interface IUserTopicMastery extends Document {
   topicInstanceId: Types.ObjectId;
 
   masteryScore: number; // 0-100
+  bktProbability: number; // 0-1, BKT posterior
   attempts: number;
 
   lastAccuracy: number;
@@ -78,6 +84,11 @@ const UserTopicMasterySchema = new Schema<IUserTopicMastery>(
     masteryScore: {
       type: Number,
       default: 50,
+    },
+
+    bktProbability: {
+      type: Number,
+      default: 0.1,
     },
 
     attempts: {

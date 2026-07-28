@@ -174,6 +174,8 @@ interface IAssessment extends Document {
 
       accuracy: number;
 
+      bktProbability?: number;
+
       total: number;
       correct: number;
       wrong: number;
@@ -306,6 +308,8 @@ const AssessmentSchema = new Schema<IAssessment>(
           },
 
           accuracy: Number,
+
+          bktProbability: Number,
 
           total: Number,
 
